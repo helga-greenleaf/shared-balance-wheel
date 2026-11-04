@@ -417,7 +417,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
               id="first-steps"
               value={view.firstSteps}
               onChange={(e) => sync.set("firstSteps", e.target.value)}
-              placeholder={"Каким будет ваш первый шаг?\nЧто вы сделаете в течение ближайших 48 часов?\nЧто вам в этом поможет?"}
+              placeholder={"Каким будет твой первый шаг?\nЧто тебе в этом поможет?\nЧто ты запланируешь на ближайшие 48 часов?"}
               rows={5}
               className="mt-2 min-h-[112px] max-h-[320px] resize-y bg-card [field-sizing:content]"
             />
