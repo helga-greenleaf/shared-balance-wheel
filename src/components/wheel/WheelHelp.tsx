@@ -1,4 +1,5 @@
 import { CircleHelp } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { helpContent } from "./help-content";
@@ -11,19 +12,20 @@ function Emphasis({ text }: { text: string }) {
 
 /** Uncontrolled dialog state stays local and never enters the session snapshot. */
 export function WheelHelp() {
+  const triggerRef = useRef<HTMLButtonElement>(null);
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm"><CircleHelp /> Как заполнять</Button>
+        <Button ref={triggerRef} variant="outline" size="sm"><CircleHelp /> Как заполнять</Button>
       </DialogTrigger>
       <DialogContent
         aria-describedby={undefined}
-        className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg p-0 [&>button]:text-muted-foreground [&>button>span]:hidden"
+        closeLabel="Закрыть инструкцию"
+        className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-lg p-0 [&>button]:text-muted-foreground"
         onCloseAutoFocus={(event) => {
           // Returning focus must not scroll the underlying workspace.
           event.preventDefault();
-          const trigger = document.querySelector<HTMLButtonElement>('button[data-state="closed"][aria-haspopup="dialog"]');
-          trigger?.focus({ preventScroll: true });
+          triggerRef.current?.focus({ preventScroll: true });
         }}
       >
         <DialogHeader className="shrink-0 border-b px-6 py-5 pr-12 text-left">
