@@ -107,7 +107,7 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
   drawLegend(p1, M, ly, reg);
   ly -= 30;
   const note =
-    "Подписи у названий: «Сейчас / После» — оценки по шкале 1–10; «—» — оценка не задана. Пустой квадрат на линии «Сейчас» означает совпадение оценок.";
+    "Подписи у названий: «Сейчас / После» — оценки по шкале 1–10; «—» — оценка не задана.";
   for (const l of wrap(clean(note), reg, 9, CW)) {
     p1.drawText(l, { x: M, y: ly, size: 9, font: reg, color: MUTED });
     ly -= 12;
