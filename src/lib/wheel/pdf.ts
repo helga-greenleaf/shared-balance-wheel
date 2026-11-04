@@ -95,8 +95,8 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
   y -= 14;
 
   const n = v.spheres.length;
-  const labelSize = n > 11 ? 8.5 : 9.5;
-  const labelW = n > 11 ? 82 : 96;
+  const labelSize = n > 11 ? 8 : 9.5;
+  const labelW = n > 11 ? 62 : 96;
   const R = n > 11 ? 150 : 158;
   const cx = W / 2;
   const cy = y - 60 - R - 10;
