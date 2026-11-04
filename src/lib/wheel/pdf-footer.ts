@@ -1,4 +1,4 @@
-import { PDFName, PDFString, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFString, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { publicToolUrl } from "./public-url";
 
 const SIZE = 9;
