@@ -30,6 +30,25 @@ describe("setup stage", () => {
     expect(docToView(toDoc(f)).setupList).toEqual([]);
   });
 
+  it("reads the draft list from per-row keys so concurrent edits merge", () => {
+    const f = initialFields("2026-11-04", [], { setup: false });
+    f["setupRow:0"] = "Здоровье";
+    f["setupRow:1"] = "Семья";
+    f["setupRow:3"] = "Финансы"; // gap ends the list
+    expect(docToView(toDoc(f)).setupList).toEqual(["Здоровье", "Семья"]);
+    f["setupRow:2"] = "Карьера";
+    expect(docToView(toDoc(f)).setupList).toEqual(["Здоровье", "Семья", "Карьера", "Финансы"]);
+    // null removes a row (shifted tail)
+    f["setupRow:3"] = null;
+    expect(docToView(toDoc(f)).setupList).toEqual(["Здоровье", "Семья", "Карьера"]);
+  });
+
+  it("falls back to the legacy whole-list field when no per-row keys exist", () => {
+    const f = initialFields("2026-11-04", [], { setup: false });
+    f["setupList"] = ["Здоровье", "Семья"];
+    expect(docToView(toDoc(f)).setupList).toEqual(["Здоровье", "Семья"]);
+  });
+
   it("an explicit setup=true flag marks setup done even with no spheres", () => {
     const f = initialFields("2026-11-04", [], { setup: true });
     expect(docToView(toDoc(f)).setupDone).toBe(true);
