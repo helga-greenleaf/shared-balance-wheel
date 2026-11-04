@@ -99,6 +99,7 @@ export const completeSetup = createServerFn({ method: "POST" })
       });
       next["setup"] = { v: true, r: (doc["setup"]?.r ?? 0) + 1 };
       delete next["setupList"];
+      for (const k of Object.keys(next)) if (k.startsWith("setupRow:")) delete next[k];
       const rev = Number(row.rev) + 1;
       const { data: upd } = await db
         .from("wheel_sessions")
@@ -175,6 +176,10 @@ const opSchema = z
     } else if (k === "setupList") {
       if (!Array.isArray(v) || v.length > MAX_SPHERES || v.some((x) => typeof x !== "string" || x.length > 200))
         bad(k);
+    } else if (/^setupRow:\d+$/.test(k)) {
+      const idx = Number(k.split(":")[1]);
+      if (idx >= MAX_SPHERES) bad(k);
+      else if (v !== null && (typeof v !== "string" || v.length > 200)) bad(k);
     } else {
       const m = /^s:([0-9a-f-]{36}):(name|now|after|max|cur|aft|additional)$/.exec(k);
       if (!m) return bad("key");
