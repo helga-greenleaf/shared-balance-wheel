@@ -239,7 +239,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
             })}
         </g>
 
-        {/* labels */}
+        {/* labels (double-click renames in place) */}
         {spheres.map((s, i) => {
           const L = labels[i]!;
           const isSel = s.id === selectedId;
@@ -253,7 +253,12 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
               className={s.id === primary ? "fill-primary font-semibold" : "fill-[var(--wheel-label)]"}
               fontWeight={isSel || s.id === primary ? 600 : 400}
               style={{ cursor: "pointer" }}
+              opacity={editing?.id === s.id ? 0 : 1}
               onClick={() => onSelect(s.id)}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                setEditing({ id: s.id, draft: s.name });
+              }}
             >
               {L.lines.map((line, j) => (
                 <tspan key={j} x={L.x} dy={j === 0 ? 0 : fontSize * 1.2}>
@@ -269,6 +274,50 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
           );
         })}
       </svg>
+
+      {/* in-place rename input: HTML overlay, so it is never clipped by the SVG */}
+      {editing && editingIndex >= 0 && (
+        <input
+          key={editing.id}
+          ref={(el) => {
+            if (el && document.activeElement !== el) {
+              el.focus();
+              el.select();
+            }
+          }}
+          value={editing.draft}
+          maxLength={200}
+          aria-label={`Переименовать сферу «${spheres[editingIndex]!.name}»`}
+          onChange={(e) => setEditing({ id: editing.id, draft: e.target.value })}
+          onBlur={saveRename}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              saveRename();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              setEditing(null);
+            }
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          className="absolute z-10 rounded-md border border-input bg-card px-2 py-1 shadow-soft focus:outline-none focus:ring-2 focus:ring-ring"
+          style={{
+            left: `${(labels[editingIndex]!.x / SIZE) * 100}%`,
+            top: `${(labels[editingIndex]!.y / SIZE) * 100}%`,
+            transform:
+              labels[editingIndex]!.anchor === "start"
+                ? "translate(0,-50%)"
+                : labels[editingIndex]!.anchor === "end"
+                  ? "translate(-100%,-50%)"
+                  : "translate(-50%,-50%)",
+            width: 210,
+            fontSize,
+          }}
+        />
+      )}
+      </div>
 
       {info && (
         <div className="pointer-events-none absolute left-2 top-2 max-w-[220px] rounded-lg border bg-card/95 px-3 py-2 text-sm shadow-soft">
