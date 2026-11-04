@@ -107,7 +107,7 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
   drawLegend(p1, M, ly, reg);
   ly -= 30;
   const note =
-    "Подписи у названий: «Сейчас / После» — оценки по шкале 1–10; «—» — оценка не задана.";
+    "Подписи у названий: «Сейчас / Развитие» — оценки по шкале 1–10; «—» — оценка не задана.";
   for (const l of wrap(clean(note), reg, 9, CW)) {
     p1.drawText(l, { x: M, y: ly, size: 9, font: reg, color: MUTED });
     ly -= 12;
@@ -150,12 +150,12 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
   v.spheres.forEach((s, i) => {
     const headLines = wrap(clean(`${i + 1}. ${s.name}`), bold, 13, CW);
     const sc = (x: number | null) => (x === null ? "не задано" : `${x}/10`);
-    const scoreLine = clean(`Сейчас: ${sc(s.now)} → После продвижения: ${sc(s.after)}`);
+    const scoreLine = clean(`Сейчас: ${sc(s.now)} → Развитие: ${sc(s.after)}`);
     const blocks = SPHERE_TEXT_FIELDS.filter((f) => s[f].trim()).map((f) => ({
       label: TEXT_LABELS[f],
       lines: wrap(clean(s[f]), reg, BODY, CW - 10),
     }));
-    const headH = headLines.length * 17 + 18 + (s.id === v.primary ? 14 : 0) + 14;
+    const headH = headLines.length * 17 + 18 + (s.id === v.primary || v.additional.includes(s.id) ? 14 : 0) + 14;
     const totalH = headH + blocks.reduce((a, b) => a + 18 + b.lines.length * LH + 6, 0);
     const avail = top - bottom;
     // keep short cards whole; never leave a heading alone at the bottom
@@ -170,6 +170,9 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
     if (s.id === v.primary) {
       cy2 -= 14;
       page!.drawText(clean("Основная сфера продвижения"), { x: M, y: cy2, size: 9.5, font: bold, color: NOW });
+    } else if (v.additional.includes(s.id)) {
+      cy2 -= 14;
+      page!.drawText(clean("Дополнительная сфера"), { x: M, y: cy2, size: 9.5, font: bold, color: INK });
     }
     cy2 -= 16;
     page!.drawText(scoreLine, { x: M, y: cy2, size: 10.5, font: reg, color: MUTED });
@@ -231,7 +234,7 @@ function drawLegend(p: PDFPage, x: number, y: number, reg: PDFFont) {
   const y2 = y - 16;
   p.drawLine({ start: { x, y: y2 + 3 }, end: { x: x + 40, y: y2 + 3 }, thickness: 1.3, color: AFTER, dashArray: [5, 3] });
   p.drawRectangle({ x: x + 17, y: y2, width: 6, height: 6, color: WHITE, borderColor: AFTER, borderWidth: 1.3 });
-  p.drawText("После продвижения — тонкая пунктирная линия, квадратные маркеры", {
+  p.drawText("Развитие — тонкая пунктирная линия, квадратные маркеры", {
     x: x + 48,
     y: y2,
     size: 10,
@@ -324,6 +327,7 @@ function drawWheel(
     const scoreTxt = clean(`${fmt(s.now)} / ${fmt(s.after)}`);
     const all = [...lines.map((t) => ({ t, f, size: labelSize, color: INK })), { t: scoreTxt, f: bold, size: labelSize, color: MUTED }];
     if (isP) all.push({ t: clean("основная сфера"), f: reg, size: labelSize - 1.5, color: NOW });
+    else if (v.additional.includes(s.id)) all.push({ t: clean("дополнительная"), f: reg, size: labelSize - 1.5, color: INK });
     const blockH = all.length * lh;
     const anchor = polar(cx, cy, R + 12, a);
     let topY: number;

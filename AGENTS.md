@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture
+- Additional sphere selection uses independent `s:<id>:additional` boolean fields; the locked `wheel_apply_ops` transaction enforces the cap and clears selection on promotion/deletion, preserving concurrent edits and legacy files.
 - Help is an uncontrolled local dialog shared by setup and workspace; its content is separate from session data so it never syncs or enters PDF exports.
 - Sector hue is derived from the immutable sphere ID; global CSS tokens control fill intensity, and pointer-preview wedges are local UI state so hovering never writes session scores.
 - Session data lives in one `wheel_sessions` row as a flat field map `{key: {v, r}}`; all writes go through the `wheel_apply_ops` SQL function so per-field changes never overwrite each other and text-field conflicts are detected by revision.
