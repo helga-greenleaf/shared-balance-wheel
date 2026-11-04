@@ -308,6 +308,7 @@ export function useWheelSync(id: string, secret: string | null) {
       const p = { ...s.pending };
       delete p["setupList"];
       delete p["setup"];
+      for (const k of Object.keys(p)) if (k.startsWith("setupRow:")) delete p[k];
       s.pending = p;
       update();
     },
