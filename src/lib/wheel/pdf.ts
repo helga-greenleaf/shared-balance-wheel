@@ -2,6 +2,7 @@ import { PDFDocument, rgb, type PDFFont, type PDFPage, LineCapStyle } from "pdf-
 import fontkit from "@pdf-lib/fontkit";
 import { fileSlug, formatDateRu, SPHERE_TEXT_FIELDS, TEXT_LABELS, type WheelView } from "./model";
 import { polar, wheelSegments } from "./geometry";
+import { drawPdfFooter, pdfContentBottom } from "./pdf-footer";
 
 const W = 595.28;
 const H = 841.89;
@@ -117,7 +118,7 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
   let page: PDFPage | null = null;
   let cy2 = 0;
   const top = H - M;
-  const bottom = M + 24;
+  const bottom = pdfContentBottom(reg, CW);
   const newPage = () => {
     page = doc.addPage([W, H]);
     cy2 = top;
@@ -214,14 +215,10 @@ export async function buildPdf(view: WheelView): Promise<Uint8Array> {
     }
   }
 
-  // Page numbers
+  // Author footer and page numbers share a reserved area on every page.
   const pages = doc.getPages();
   pages.forEach((pg, i) => {
-    const t = clean(`${i + 1} / ${pages.length}`);
-    const w = reg.widthOfTextAtSize(t, 9);
-    pg.drawText(t, { x: W - M - w, y: M - 14, size: 9, font: reg, color: MUTED });
-    const tt = clean(v.title);
-    pg.drawText(tt.length > 70 ? tt.slice(0, 70) + "..." : tt, { x: M, y: M - 14, size: 9, font: reg, color: MUTED });
+    drawPdfFooter(pg, reg, M, i, pages.length);
   });
 
   return doc.save();
