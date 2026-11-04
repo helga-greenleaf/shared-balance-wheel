@@ -394,9 +394,6 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
               />
             </div>
             <WheelLegend mode={mode} />
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Нажмите на спицу или перетащите точку, чтобы задать оценку. С клавиатуры: Tab к сектору, стрелки или цифры.
-            </p>
           </div>
 
           <div className="rounded-2xl border bg-card p-4 shadow-soft sm:p-6">
