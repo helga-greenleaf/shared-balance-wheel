@@ -8,3 +8,10 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture
+- Session data lives in one `wheel_sessions` row as a flat field map `{key: {v, r}}`; all writes go through the `wheel_apply_ops` SQL function so per-field changes never overwrite each other and text-field conflicts are detected by revision.
+- The table has no RLS policies and no anon/authenticated grants; only server functions (`src/lib/wheel/session.functions.ts`) touch it after checking the SHA-256 of the link secret — keeps access tied to the secret link.
+- Live sync uses 1s polling through server functions instead of direct realtime subscriptions, because subscriptions could not verify the link secret.
+- The link secret travels in the URL hash (`#k=`) so it never reaches server logs; local backup is per session id in localStorage.
+- PDF is generated in the browser with pdf-lib + embedded PT Sans (public/fonts) from one snapshot; it never screenshots the UI.
