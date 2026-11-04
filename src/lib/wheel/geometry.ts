@@ -47,7 +47,7 @@ export function wrapByChars(text: string, maxChars: number, maxLines = 4): strin
   if (line) lines.push(line);
   if (lines.length > maxLines) {
     const kept = lines.slice(0, maxLines);
-    kept[maxLines - 1] = kept[maxLines - 1].replace(/.?$/, "…");
+    kept[maxLines - 1] = kept[maxLines - 1]!.replace(/.?$/, "…");
     return kept;
   }
   return lines.length ? lines : [""];

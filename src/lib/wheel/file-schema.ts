@@ -90,13 +90,13 @@ export function parseWheelFile(text: string):
     return { ok: false, error: "Файл не является корректным JSON." };
   }
   const o = json as Record<string, unknown>;
-  if (!o || typeof o !== "object" || o.format !== FILE_FORMAT)
+  if (!o || typeof o !== "object" || o["format"] !== FILE_FORMAT)
     return { ok: false, error: "Это не файл «Колеса баланса»." };
-  if (o.version !== FILE_VERSION)
-    return { ok: false, error: `Неподдерживаемая версия формата: ${String(o.version)}.` };
+  if (o["version"] !== FILE_VERSION)
+    return { ok: false, error: `Неподдерживаемая версия формата: ${String(o["version"])}.` };
   const r = wheelFileSchema.safeParse(json);
   if (!r.success) {
-    const issue = r.error.issues[0];
+    const issue = r.error.issues[0]!;
     const path = issue.path.join(".");
     if (path === "spheres" && (issue.code === "too_small" || issue.code === "too_big"))
       return { ok: false, error: `Число сфер должно быть от ${MIN_SPHERES} до ${MAX_SPHERES}.` };

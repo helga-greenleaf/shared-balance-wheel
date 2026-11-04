@@ -45,7 +45,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
   };
 
   const onDown = (e: PointerEvent, i: number) => {
-    const s = spheres[i];
+    const s = spheres[i]!;
     onSelect(s.id);
     const v = scoreFromPointer(e, i);
     if (v !== null) onScore(s.id, effectiveTarget, v);
@@ -53,10 +53,10 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   const onMove = (e: PointerEvent, i: number) => {
-    if (drag.current !== spheres[i].id) return;
+    const s = spheres[i]!;
+    if (drag.current !== s.id) return;
     const v = scoreFromPointer(e, i);
-    const cur = spheres[i][effectiveTarget];
-    if (v !== null && v !== cur) onScore(spheres[i].id, effectiveTarget, v);
+    if (v !== null && v !== s[effectiveTarget]) onScore(s.id, effectiveTarget, v);
   };
   const onKey = (e: KeyboardEvent, s: Sphere) => {
     const cur = s[effectiveTarget];
@@ -225,7 +225,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
 
         {/* labels */}
         {spheres.map((s, i) => {
-          const L = labels[i];
+          const L = labels[i]!;
           const isSel = s.id === selectedId;
           return (
             <text

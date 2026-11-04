@@ -283,8 +283,8 @@ function drawWheel(
     for (const seg of wheelSegments(scores)) {
       const closed = seg.length === n && n > 0;
       for (let j = 0; j < seg.length - (closed ? 0 : 1); j++) {
-        const a = seg[j];
-        const b = seg[(j + 1) % seg.length];
+        const a = seg[j]!;
+        const b = seg[(j + 1) % seg.length]!;
         cb(at(a, scores[a]!), at(b, scores[b]!));
       }
     }

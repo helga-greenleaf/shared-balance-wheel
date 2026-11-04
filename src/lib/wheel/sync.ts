@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { applyOps, getSession } from "./session.functions";
 import { docToView, isConflictChecked, sKey, type Doc, type WheelView } from "./model";
 
-type PendingOp = { kind: "set" | "add" | "del"; v: unknown; base?: number };
+type PendingOp = { kind: "set" | "add" | "del"; v: unknown; base?: number | undefined };
+type ApplyResult = {
+  rev: number;
+  data: Doc;
+  conflicts: Array<{ k: string; v: unknown; r: number; mine: unknown }>;
+  rejected: Array<{ kind: string; k?: string; sid?: string }>;
+};
 type Pending = Record<string, PendingOp>;
 
 export type SyncStatus = "loading" | "saving" | "saved" | "offline" | "local";
@@ -37,7 +43,7 @@ export function rememberSession(id: string, secret: string) {
 
 function sphereOf(key: string): string | null {
   const m = /^s:([^:]+):/.exec(key);
-  return m ? m[1] : null;
+  return m?.[1] ?? null;
 }
 
 const POLL_MS = 1000;
@@ -91,7 +97,7 @@ export function useWheelSync(id: string, secret: string | null) {
     s.inflight = true;
     force();
     try {
-      const res = await applyOps({ data: { id, secret, ops } });
+      const res = JSON.parse((await applyOps({ data: { id, secret, ops } })).json) as ApplyResult;
       s.online = true;
       s.rev = res.rev;
       s.doc = res.data as Doc;
@@ -117,7 +123,7 @@ export function useWheelSync(id: string, secret: string | null) {
         if (conflictKeys.has(k)) continue;
         const cur = s.pending[k];
         if (cur === p) delete s.pending[k];
-        else if (cur && cur.kind === "set" && isConflictChecked(k)) cur.base = s.doc[k]?.r;
+        else if (cur && cur.kind === "set" && isConflictChecked(k)) cur.base = s.doc[k]?.r ?? 0;
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
@@ -151,7 +157,7 @@ export function useWheelSync(id: string, secret: string | null) {
         const res = await getSession({ data: { id, secret } });
         if (cancelled) return;
         s.rev = res.rev;
-        s.doc = (res.data ?? {}) as Doc;
+        s.doc = (res.json ? JSON.parse(res.json) : {}) as Doc;
         s.loaded = true;
         s.online = true;
         rememberSession(id, secret);
@@ -182,9 +188,9 @@ export function useWheelSync(id: string, secret: string | null) {
           const res = await getSession({ data: { id, secret, sinceRev: s.rev } });
           const wasOffline = !s.online;
           s.online = true;
-          if (res.data && !s.inflight) {
+          if (res.json && !s.inflight) {
             s.rev = res.rev;
-            s.doc = res.data as Doc;
+            s.doc = JSON.parse(res.json) as Doc;
             update();
           } else if (wasOffline) force();
           if (Object.keys(s.pending).length) void flush();
@@ -255,7 +261,7 @@ export function useWheelSync(id: string, secret: string | null) {
       for (const [k, p] of Object.entries(s.pending)) if (sphereOf(k) !== sid) next[k] = p;
       const isLocalOnly = s.pending[sKey(sid, "pos")]?.kind === "add";
       if (!isLocalOnly) next[sKey(sid, "del")] = { kind: "del", v: true };
-      if (view.primary === sid) next.primary = { kind: "set", v: null };
+      if (view.primary === sid) next["primary"] = { kind: "set", v: null };
       s.pending = next;
       s.conflicts = s.conflicts.filter((c) => sphereOf(c.k) !== sid);
       update();

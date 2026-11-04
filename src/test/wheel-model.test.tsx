@@ -42,8 +42,8 @@ describe("wheel model", () => {
 
   it("round-trips through the save file and rejects bad files", () => {
     const v = docToView(toDoc(initialFields("2026-11-04")));
-    v.spheres[0].now = 4;
-    v.spheres[0].max = "Абзац 1\n\nАбзац 2";
+    v.spheres[0]!.now = 4;
+    v.spheres[0]!.max = "Абзац 1\n\nАбзац 2";
     const text = JSON.stringify(viewToFile(v));
     expect(text).not.toContain("secret");
     expect(parseWheelFile(text).ok).toBe(true);

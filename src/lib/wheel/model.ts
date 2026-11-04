@@ -75,7 +75,7 @@ export function docToView(doc: Doc): WheelView {
   const ids: string[] = [];
   for (const k of Object.keys(doc)) {
     const m = /^s:([^:]+):pos$/.exec(k);
-    if (m && doc[`s:${m[1]}:del`]?.v !== true) ids.push(m[1]);
+    if (m?.[1] && doc[`s:${m[1]}:del`]?.v !== true) ids.push(m[1]);
   }
   const spheres: Sphere[] = ids
     .map((id) => {
@@ -93,12 +93,12 @@ export function docToView(doc: Doc): WheelView {
       };
     })
     .sort((a, b) => a.pos - b.pos || a.id.localeCompare(b.id));
-  const primary = str(doc.primary?.v) || null;
+  const primary = str(doc["primary"]?.v) || null;
   return {
-    title: str(doc.title?.v, DEFAULT_TITLE),
-    date: str(doc.date?.v),
+    title: str(doc["title"]?.v, DEFAULT_TITLE),
+    date: str(doc["date"]?.v),
     primary: primary && spheres.some((s) => s.id === primary) ? primary : null,
-    firstSteps: str(doc.firstSteps?.v),
+    firstSteps: str(doc["firstSteps"]?.v),
     spheres,
   };
 }
@@ -160,9 +160,10 @@ export function initialFields(
     title: extra?.title ?? DEFAULT_TITLE,
     date,
   };
-  if (extra?.primary) f.primary = extra.primary;
-  if (extra?.firstSteps) f.firstSteps = extra.firstSteps;
-  const list = spheres ?? Array.from({ length: MIN_SPHERES }, () => ({ id: crypto.randomUUID() }));
+  if (extra?.primary) f["primary"] = extra.primary;
+  if (extra?.firstSteps) f["firstSteps"] = extra.firstSteps;
+  const list: Array<Partial<Sphere> & { id: string }> =
+    spheres ?? Array.from({ length: MIN_SPHERES }, () => ({ id: crypto.randomUUID() as string }));
   list.forEach((s, i) => {
     f[sKey(s.id, "pos")] = i + 1;
     f[sKey(s.id, "name")] = s.name ?? UNTITLED;

@@ -92,8 +92,8 @@ export const getSession = createServerFn({ method: "POST" })
       .single();
     if (error || !row) throw new Error("Сервер недоступен");
     if (data.sinceRev !== undefined && Number(row.rev) === data.sinceRev)
-      return { rev: Number(row.rev), data: null };
-    return { rev: Number(row.rev), data: row.data as Record<string, { v: unknown; r: number }> };
+      return { rev: Number(row.rev), json: null as string | null };
+    return { rev: Number(row.rev), json: JSON.stringify(row.data) as string | null };
   });
 
 const TEXT_MAX = 20000;
@@ -143,12 +143,7 @@ export const applyOps = createServerFn({ method: "POST" })
       p_ops: data.ops as never,
     });
     if (error) throw new Error("Не удалось сохранить");
-    return res as unknown as {
-      rev: number;
-      data: Record<string, { v: unknown; r: number }>;
-      conflicts: Array<{ k: string; v: unknown; r: number; mine: unknown }>;
-      rejected: Array<{ kind: string; k?: string; sid?: string }>;
-    };
+    return { json: JSON.stringify(res) };
   });
 
 export const LIMITS = { MIN_SPHERES, MAX_SPHERES };
