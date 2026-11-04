@@ -364,7 +364,8 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                   </button>
                 ))}
               </div>
-                <div className={cn("inline-flex items-center justify-self-end text-sm", mode !== "both" && "invisible")} aria-hidden={mode !== "both"}>
+                <div className={cn("inline-flex items-center justify-self-end gap-2 text-sm", mode !== "both" && "invisible")} aria-hidden={mode !== "both"}>
+                  <span className="whitespace-nowrap text-muted-foreground">Редактировать:</span>
                   <div className="inline-flex rounded-lg border p-0.5">
                     {(
                       [
