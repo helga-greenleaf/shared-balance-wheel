@@ -3,6 +3,7 @@ import { FolderOpen, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MAX_SPHERES, MIN_SPHERES } from "@/lib/wheel/model";
 import { WheelHelp } from "./WheelHelp";
+import { WheelFooter } from "./WheelFooter";
 
 interface Props {
   /** Synced draft list from the shared session (may be empty). */
@@ -87,7 +88,8 @@ export function SetupForm({ initialList, busy, importBusy, onLoadFile, onRowChan
   const ready = rows.every((r) => r.trim().length > 0);
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1 items-center justify-center px-4 pt-10">
       <div className="w-full max-w-lg rounded-2xl border bg-card p-6 shadow-soft sm:p-8">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">Какие сферы включим в колесо?</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -158,6 +160,8 @@ export function SetupForm({ initialList, busy, importBusy, onLoadFile, onRowChan
           )}
         </div>
       </div>
+      </div>
+      <WheelFooter />
     </div>
   );
 }

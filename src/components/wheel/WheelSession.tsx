@@ -45,6 +45,7 @@ import { WheelChart, WheelLegend, type ScoreTarget, type ViewMode } from "./Whee
 import { NameInput, SphereCard } from "./SphereCard";
 import { SetupForm } from "./SetupForm";
 import { WheelHelp } from "./WheelHelp";
+import { WheelFooter } from "./WheelFooter";
 
 type Confirm = {
   title: string;
@@ -291,7 +292,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   const hasAnyAfter = view.spheres.some((s) => s.now !== null);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="border-b bg-card/70 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
           <div className="min-w-0 flex-1">
@@ -346,7 +347,8 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div className="flex-1">
+      <main className="mx-auto grid max-w-[1400px] gap-6 px-4 pt-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <section className="flex min-h-0 min-w-0 flex-col gap-3 lg:self-start">
           <div className="rounded-2xl border bg-card p-3 shadow-soft sm:px-4 sm:py-3">
             <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_1fr]">
@@ -499,6 +501,8 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
           </div>
         </section>
       </main>
+      </div>
+      <WheelFooter />
 
       <ConflictDialog conflicts={sync.conflicts} view={view} onResolve={sync.resolveConflict} />
 
