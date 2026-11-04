@@ -342,7 +342,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       </header>
 
       <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <section className="flex min-h-0 flex-col gap-3 lg:self-start">
+        <section className="flex min-h-0 min-w-0 flex-col gap-3 lg:self-start">
           <div className="rounded-2xl border bg-card p-3 shadow-soft sm:px-4 sm:py-3">
             <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_1fr]">
               <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Режим просмотра">
@@ -428,7 +428,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
           </div>
         </section>
 
-        <section className="space-y-3">
+        <section className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium">
               Сферы
