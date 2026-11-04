@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { formatDiff, type Score, type Sphere } from "@/lib/wheel/model";
 import { layoutLabels, polar, wheelSegments } from "@/lib/wheel/geometry";
+import { sectorColors } from "@/lib/wheel/colors";
 
 export type ViewMode = "now" | "after" | "both";
 export type ScoreTarget = "now" | "after";
@@ -13,15 +14,17 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onScore: (id: string, target: ScoreTarget, v: number) => void;
+  onRename: (id: string, name: string) => void;
 }
 
 const SIZE = 820;
 const C = SIZE / 2;
 const R = 250;
 
-export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore }: Props) {
+export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ id: string; draft: string } | null>(null);
   const drag = useRef<string | null>(null);
   const n = spheres.length;
   const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
@@ -96,17 +99,44 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
       return `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
     }).join(" ") + " Z";
 
+  const sectorPath = (i: number) => {
+    const a0 = angle(i) - Math.PI / n;
+    const a1 = angle(i) + Math.PI / n;
+    const p0 = polar(C, C, R, a0);
+    const p1 = polar(C, C, R, a1);
+    const large = (2 * Math.PI) / n > Math.PI ? 1 : 0;
+    return `M${C},${C} L${p0.x},${p0.y} A${R},${R} 0 ${large} 1 ${p1.x},${p1.y} Z`;
+  };
+
+  const editingIndex = editing ? spheres.findIndex((s) => s.id === editing.id) : -1;
+  const saveRename = () => {
+    if (!editing) return;
+    const s = spheres.find((x) => x.id === editing.id);
+    const t = editing.draft.trim();
+    // Empty input restores the previous name; unchanged text is not re-sent.
+    if (s && t && t !== s.name) onRename(editing.id, t);
+    setEditing(null);
+  };
+
   return (
     <div className="relative">
+      <div className="relative mx-auto w-full max-w-[640px]">
       <svg
         ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="mx-auto block h-auto w-full max-w-[640px] touch-none select-none"
+        className="block h-auto w-full touch-none select-none"
         role="group"
         aria-label="Колесо баланса"
         onPointerUp={() => (drag.current = null)}
         onPointerLeave={() => setHover(null)}
       >
+        {/* pastel sector backgrounds, under grid and data */}
+        {spheres.map((s, i) => {
+          const col = sectorColors(s.id);
+          const active = s.id === selectedId || s.id === hover;
+          return <path key={s.id} d={sectorPath(i)} fill={active ? col.active : col.base} pointerEvents="none" />;
+        })}
+
         {/* grid */}
         {Array.from({ length: 10 }, (_, k) => (
           <circle
@@ -137,27 +167,13 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
           </text>
         ))}
 
-        {/* sector highlights + hit areas */}
+        {/* hit areas (transparent; backgrounds are painted below the grid) */}
         {spheres.map((s, i) => {
-          const a0 = angle(i) - Math.PI / n;
-          const a1 = angle(i) + Math.PI / n;
-          const p0 = polar(C, C, R, a0);
-          const p1 = polar(C, C, R, a1);
-          const large = 2 * Math.PI / n > Math.PI ? 1 : 0;
-          const d = `M${C},${C} L${p0.x},${p0.y} A${R},${R} 0 ${large} 1 ${p1.x},${p1.y} Z`;
-          const active = s.id === selectedId || s.id === hover;
-          const isPrimary = s.id === primary;
           return (
             <path
               key={s.id}
-              d={d}
-              className={
-                active
-                  ? "fill-highlight"
-                  : isPrimary
-                    ? "fill-[color-mix(in_oklab,var(--highlight)_55%,transparent)]"
-                    : "fill-transparent"
-              }
+              d={sectorPath(i)}
+              fill="transparent"
               style={{ cursor: "pointer" }}
               tabIndex={0}
               role="slider"
