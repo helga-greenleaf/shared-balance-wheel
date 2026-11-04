@@ -21,7 +21,7 @@ export function sectorColors(id: string): SectorColor {
   // Full-circle hue from the id hash: neighbouring sectors practically never match.
   const h = hashId(id) % 360;
   return {
-    base: `hsl(${h} 70% 93%)`,
-    active: `hsl(${h} 60% 82%)`,
+    base: `oklch(var(--wheel-sector-base-lightness) var(--wheel-sector-base-chroma) ${h})`,
+    active: `oklch(var(--wheel-sector-active-lightness) var(--wheel-sector-active-chroma) ${h})`,
   };
 }

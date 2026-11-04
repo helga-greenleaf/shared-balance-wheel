@@ -24,6 +24,7 @@ const R = 250;
 export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [hoverScore, setHoverScore] = useState<number | null>(null);
   const [editing, setEditing] = useState<{ id: string; draft: string } | null>(null);
   const drag = useRef<string | null>(null);
   const n = spheres.length;
@@ -41,14 +42,17 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     const pt = svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
-    const p = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return null;
+    const p = pt.matrixTransform(matrix.inverse());
     const a = angle(i);
     const proj = (p.x - C) * Math.cos(a) + (p.y - C) * Math.sin(a);
     return Math.max(1, Math.min(10, Math.round((proj / R) * 10)));
   };
 
   const onDown = (e: PointerEvent, i: number) => {
-    const s = spheres[i]!;
+    const s = spheres[i];
+    if (!s) return;
     onSelect(s.id);
     const v = scoreFromPointer(e, i);
     if (v !== null) onScore(s.id, effectiveTarget, v);
@@ -56,9 +60,12 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   const onMove = (e: PointerEvent, i: number) => {
-    const s = spheres[i]!;
-    if (drag.current !== s.id) return;
+    const s = spheres[i];
+    if (!s) return;
     const v = scoreFromPointer(e, i);
+    setHover(s.id);
+    setHoverScore(v);
+    if (drag.current !== s.id) return;
     if (v !== null && v !== s[effectiveTarget]) onScore(s.id, effectiveTarget, v);
   };
   const onKey = (e: KeyboardEvent, s: Sphere) => {
@@ -99,13 +106,14 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
       return `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
     }).join(" ") + " Z";
 
-  const sectorPath = (i: number) => {
+  const sectorPath = (i: number, score = 10) => {
+    const radius = (score / 10) * R;
     const a0 = angle(i) - Math.PI / n;
     const a1 = angle(i) + Math.PI / n;
-    const p0 = polar(C, C, R, a0);
-    const p1 = polar(C, C, R, a1);
+    const p0 = polar(C, C, radius, a0);
+    const p1 = polar(C, C, radius, a1);
     const large = (2 * Math.PI) / n > Math.PI ? 1 : 0;
-    return `M${C},${C} L${p0.x},${p0.y} A${R},${R} 0 ${large} 1 ${p1.x},${p1.y} Z`;
+    return `M${C},${C} L${p0.x},${p0.y} A${radius},${radius} 0 ${large} 1 ${p1.x},${p1.y} Z`;
   };
 
   const editingIndex = editing ? spheres.findIndex((s) => s.id === editing.id) : -1;
@@ -128,13 +136,21 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
         role="group"
         aria-label="Колесо баланса"
         onPointerUp={() => (drag.current = null)}
-        onPointerLeave={() => setHover(null)}
+        onPointerLeave={() => { setHover(null); setHoverScore(null); }}
       >
         {/* pastel sector backgrounds, under grid and data */}
         {spheres.map((s, i) => {
           const col = sectorColors(s.id);
-          const active = s.id === selectedId || s.id === hover;
-          return <path key={s.id} d={sectorPath(i)} fill={active ? col.active : col.base} pointerEvents="none" />;
+          const preview = s.id === hover ? hoverScore : null;
+          const activeScore = preview ?? (s.id === selectedId ? s[effectiveTarget] : null);
+          return (
+            <g key={s.id} pointerEvents="none">
+              <path d={sectorPath(i)} fill={col.base} pointerEvents="none" />
+              {activeScore !== null && (
+                <path d={sectorPath(i, activeScore)} fill={col.active} pointerEvents="none" data-hover-score={preview ?? undefined} />
+              )}
+            </g>
+          );
         })}
 
         {/* grid */}
@@ -185,9 +201,10 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
               aria-valuetext={s[effectiveTarget] === null ? "не задано" : String(s[effectiveTarget])}
               onPointerDown={(e) => onDown(e, i)}
               onPointerMove={(e) => onMove(e, i)}
-              onPointerEnter={() => setHover(s.id)}
-              onFocus={() => setHover(s.id)}
-              onBlur={() => setHover(null)}
+              onPointerEnter={(e) => { setHover(s.id); setHoverScore(scoreFromPointer(e, i)); }}
+              onPointerLeave={() => { if (!drag.current) { setHover(null); setHoverScore(null); } }}
+              onFocus={() => { setHover(s.id); setHoverScore(null); }}
+              onBlur={() => { setHover(null); setHoverScore(null); }}
               onKeyDown={(e) => onKey(e, s)}
             />
           );
