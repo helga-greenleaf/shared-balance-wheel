@@ -235,7 +235,7 @@ export function useWheelSync(id: string, secret: string | null) {
       const base = isConflictChecked(key)
         ? prev && prev.kind === "set"
           ? prev.base
-          : s.doc[key]?.r
+          : (s.doc[key]?.r ?? 0)
         : undefined;
       s.pending = { ...s.pending, [key]: { kind: "set", v, base } };
       update();
