@@ -1,9 +1,6 @@
 // Stable pastel sector colors, derived from the sphere's immutable id.
 // Renaming, reordering, adding or removing other spheres never recolors a sphere.
 
-/** 15 well-separated hues so neighbouring sectors usually differ. */
-const HUES = [8, 28, 48, 72, 96, 124, 152, 180, 206, 232, 258, 284, 306, 326, 344];
-
 function hashId(id: string): number {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) {
@@ -21,7 +18,8 @@ export interface SectorColor {
 }
 
 export function sectorColors(id: string): SectorColor {
-  const h = HUES[hashId(id) % HUES.length]!;
+  // Full-circle hue from the id hash: neighbouring sectors practically never match.
+  const h = hashId(id) % 360;
   return {
     base: `hsl(${h} 70% 93%)`,
     active: `hsl(${h} 60% 82%)`,
