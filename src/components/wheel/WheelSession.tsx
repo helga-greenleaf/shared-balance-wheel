@@ -339,7 +339,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       </header>
 
       <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <section className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+        <section className="flex min-h-0 flex-col gap-3">
           <div className="rounded-2xl border bg-card p-3 shadow-soft sm:px-4 sm:py-3">
             <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_1fr]">
               <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Режим просмотра">
@@ -409,7 +409,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
             <WheelLegend mode={mode} />
           </div>
 
-          <div className="rounded-2xl border bg-card p-3 shadow-soft sm:p-4">
+          <div className="flex flex-1 flex-col rounded-2xl border bg-card p-3 shadow-soft sm:p-4">
             <label htmlFor="first-steps" className="font-serif text-lg font-medium">
               Первые шаги
             </label>
@@ -417,8 +417,8 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
               id="first-steps"
               value={view.firstSteps}
               onChange={(e) => sync.set("firstSteps", e.target.value)}
-              placeholder="С чего вы начнёте?"
-              className="mt-2 min-h-[96px] max-h-[360px] resize-y bg-card"
+              placeholder={"Каким будет ваш первый шаг?\nЧто вы сделаете в течение ближайших 48 часов?\nЧто вам в этом поможет?"}
+              className="mt-2 min-h-[160px] flex-1 resize-y bg-card lg:resize-none"
             />
           </div>
         </section>
