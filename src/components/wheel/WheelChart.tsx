@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useMemo, useRef, useState, type PointerEvent } from "react";
 import { formatDiff, type Score, type Sphere } from "@/lib/wheel/model";
 import { layoutLabels, polar, wheelSegments } from "@/lib/wheel/geometry";
 import { sectorColors } from "@/lib/wheel/colors";
@@ -19,12 +19,13 @@ interface Props {
 
 const SIZE = 820;
 const C = SIZE / 2;
-const R = 250;
+const R = 275;
 
 export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [hoverScore, setHoverScore] = useState<number | null>(null);
+  const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
   const [editing, setEditing] = useState<{ id: string; draft: string } | null>(null);
   const drag = useRef<string | null>(null);
   const n = spheres.length;
@@ -45,6 +46,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     const matrix = svg.getScreenCTM();
     if (!matrix) return null;
     const p = pt.matrixTransform(matrix.inverse());
+    setPointerPosition({ x: p.x, y: p.y });
     const a = angle(i);
     const proj = (p.x - C) * Math.cos(a) + (p.y - C) * Math.sin(a);
     return Math.max(1, Math.min(10, Math.round((proj / R) * 10)));
@@ -55,6 +57,8 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     if (!s) return;
     onSelect(s.id);
     const v = scoreFromPointer(e, i);
+    setHover(s.id);
+    setHoverScore(v);
     if (v !== null) onScore(s.id, effectiveTarget, v);
     drag.current = s.id;
     (e.target as Element).setPointerCapture?.(e.pointerId);
@@ -67,19 +71,6 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
     setHoverScore(v);
     if (drag.current !== s.id) return;
     if (v !== null && v !== s[effectiveTarget]) onScore(s.id, effectiveTarget, v);
-  };
-  const onKey = (e: KeyboardEvent, s: Sphere) => {
-    const cur = s[effectiveTarget];
-    let next: number | null = null;
-    if (e.key === "ArrowUp" || e.key === "ArrowRight") next = Math.min(10, (cur ?? 0) + 1);
-    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") next = Math.max(1, (cur ?? 2) - 1);
-    else if (/^[1-9]$/.test(e.key)) next = Number(e.key);
-    else if (e.key === "0") next = 10;
-    else if (e.key === "Enter") onSelect(s.id);
-    if (next !== null) {
-      e.preventDefault();
-      onScore(s.id, effectiveTarget, next);
-    }
   };
 
   const pt = (i: number, v: number) => polar(C, C, (v / 10) * R, angle(i));
@@ -128,7 +119,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
 
   return (
     <div className="relative">
-      <div className="relative mx-auto w-full max-w-[640px]">
+      <div className="relative mx-auto w-full max-w-[720px]">
       <svg
         ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -190,22 +181,15 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
               key={s.id}
               d={sectorPath(i)}
               fill="transparent"
-              // Focus is shown by the sector's own active color, not the default outline.
-              style={{ cursor: "pointer", outline: "none" }}
-              tabIndex={0}
-              role="slider"
+              className="cursor-pointer"
+              role="img"
               aria-label={`${s.name}: ${effectiveTarget === "now" ? "Сейчас" : "После продвижения"}`}
-              aria-valuemin={1}
-              aria-valuemax={10}
-              aria-valuenow={s[effectiveTarget] ?? undefined}
-              aria-valuetext={s[effectiveTarget] === null ? "не задано" : String(s[effectiveTarget])}
+              data-sector-id={s.id}
+              data-score={s[effectiveTarget] ?? undefined}
               onPointerDown={(e) => onDown(e, i)}
               onPointerMove={(e) => onMove(e, i)}
               onPointerEnter={(e) => { setHover(s.id); setHoverScore(scoreFromPointer(e, i)); }}
               onPointerLeave={() => { if (!drag.current) { setHover(null); setHoverScore(null); } }}
-              onFocus={() => { setHover(s.id); setHoverScore(null); }}
-              onBlur={() => { setHover(null); setHoverScore(null); }}
-              onKeyDown={(e) => onKey(e, s)}
             />
           );
         })}
@@ -255,6 +239,35 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
                 />
               );
             })}
+        </g>
+
+        {/* Saved values sit beside their markers, with matching contour colors. */}
+        <g pointerEvents="none">
+          {spheres.map((s, i) => {
+            if (s.id === hover || s.id === selectedId) return null;
+            const values: { key: ScoreTarget; value: number; side: number }[] = [];
+            if (showNow && s.now !== null) values.push({ key: "now", value: s.now, side: 1 });
+            if (showAfter && s.after !== null && !(showNow && s.after === s.now)) {
+              values.push({ key: "after", value: s.after, side: showNow ? -1 : 1 });
+            }
+            return values.map(({ key, value, side }) => {
+              const p = pt(i, value);
+              return (
+                <text key={`${s.id}:${key}`} x={p.x - Math.sin(angle(i)) * 19 * side} y={p.y + Math.cos(angle(i)) * 19 * side}
+                  textAnchor="middle" dominantBaseline="central" fontSize={16} fontWeight={600}
+                  className={key === "now" ? "fill-wheel-now stroke-card" : "fill-wheel-after stroke-card"}
+                  strokeWidth={4} paintOrder="stroke" strokeLinejoin="round" data-saved-score={value}>
+                  {value}
+                </text>
+              );
+            });
+          })}
+          {hover && hoverScore !== null && pointerPosition && (
+            <g transform={`translate(${Math.min(SIZE - 25, pointerPosition.x + 27)},${Math.max(25, pointerPosition.y - 27)})`} data-preview-value={hoverScore}>
+              <circle r={18} className="fill-card stroke-primary" strokeWidth={2} />
+              <text textAnchor="middle" dominantBaseline="central" fontSize={19} fontWeight={700} className="fill-foreground">{hoverScore}</text>
+            </g>
+          )}
         </g>
 
         {/* labels (double-click renames in place) */}
