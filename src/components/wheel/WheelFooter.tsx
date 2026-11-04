@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Globe, Send } from "lucide-react";
 
 export function WheelFooter() {
   return (
@@ -10,10 +11,10 @@ export function WheelFooter() {
         </div>
         <nav aria-label="Ссылки автора" className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <Button asChild variant="link" className="h-auto rounded-sm p-0 text-base font-normal hover:text-foreground focus-visible:ring-2 focus-visible:ring-offset-4">
-            <a href="https://make-it-done.pro/" target="_blank" rel="noopener noreferrer">Обо мне ↗</a>
+            <a href="https://make-it-done.pro/" target="_blank" rel="noopener noreferrer"><Globe aria-hidden="true" /> Мой сайт</a>
           </Button>
           <Button asChild variant="link" className="h-auto rounded-sm p-0 text-base font-normal hover:text-foreground focus-visible:ring-2 focus-visible:ring-offset-4">
-            <a href="https://t.me/catsandcoaching" target="_blank" rel="noopener noreferrer">Коты и коучинг ↗</a>
+            <a href="https://t.me/catsandcoaching" target="_blank" rel="noopener noreferrer"><Send aria-hidden="true" /> Канал в Telegram</a>
           </Button>
         </nav>
       </div>
