@@ -145,21 +145,37 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
           onClick={onTogglePrimary}
           aria-pressed={primary}
           title={primary ? "Снять выбор основной сферы" : "Сделать основной сферой продвижения"}
+          aria-label={primary ? "Снять выбор основной сферы" : "Сделать основной сферой продвижения"}
           className={cn(
-            "rounded-md p-1.5 hover:bg-accent",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-accent",
             primary ? "text-primary" : "text-muted-foreground",
           )}
         >
           <Star className={cn("h-4 w-4", primary && "fill-current")} />
         </button>
         <Button
-          variant={additional ? "secondary" : "ghost"}
+          variant="ghost"
           size="icon"
           className="h-8 w-8 shrink-0"
           disabled={!canChooseAdditional}
-          aria-label={additional ? "Снять выбор дополнительной сферы" : "Выбрать дополнительную сферу"}
-          aria-pressed={additional}
-          title={primary ? "Основная сфера уже выбрана" : additional ? "Снять выбор дополнительной сферы" : canChooseAdditional ? "Выбрать дополнительную сферу" : "Можно выбрать до двух дополнительных сфер"}
+          aria-label={
+            primary
+              ? "Основная сфера уже выбрана"
+              : additional
+                ? "Снять выбор дополнительной сферы"
+                : canChooseAdditional
+                  ? "Сделать дополнительной сферой продвижения"
+                  : "Можно выбрать до двух дополнительных сфер"
+          }
+          title={
+            primary
+              ? "Основная сфера уже выбрана"
+              : additional
+                ? "Снять выбор дополнительной сферы"
+                : canChooseAdditional
+                  ? "Сделать дополнительной сферой продвижения"
+                  : "Можно выбрать до двух дополнительных сфер"
+          }
           onClick={onToggleAdditional}
         ><CirclePlus className={cn("h-4 w-4", additional && "text-primary")} /></Button>
         <button
@@ -168,7 +184,7 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
           disabled={!canDelete}
           title={canDelete ? "Удалить сферу" : "Нельзя удалить: минимум 6 сфер"}
           aria-label="Удалить сферу"
-          className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
         >
           <Trash2 className="h-4 w-4" />
         </button>
