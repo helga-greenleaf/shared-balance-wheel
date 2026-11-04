@@ -42,6 +42,7 @@ import { createSession, importSession } from "@/lib/wheel/session.functions";
 import { downloadBlob } from "@/lib/wheel/download";
 import { WheelChart, WheelLegend, type ScoreTarget, type ViewMode } from "./WheelChart";
 import { NameInput, SphereCard } from "./SphereCard";
+import { SetupForm } from "./SetupForm";
 
 type Confirm = {
   title: string;
@@ -93,6 +94,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [setupBusy, setSetupBusy] = useState(false);
   const [pdf, setPdf] = useState<{ blob: Blob; name: string } | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const fileInput = useRef<HTMLInputElement>(null);
@@ -245,6 +247,27 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       </Centered>
     );
 
+  // Fresh sessions first collect the sphere list; old sessions and imports
+  // have no "setup" flag and go straight to the working interface.
+  if (!view.setupDone)
+    return (
+      <SetupForm
+        initialList={view.setupList}
+        busy={setupBusy}
+        onListChange={(names) => sync.set("setupList", names)}
+        onComplete={async (names) => {
+          setSetupBusy(true);
+          try {
+            await sync.completeSetup(names);
+          } catch {
+            toast.error("Не удалось сохранить список сфер. Проверьте соединение и попробуйте снова.");
+          } finally {
+            setSetupBusy(false);
+          }
+        }}
+      />
+    );
+
   const hasAnyAfter = view.spheres.some((s) => s.now !== null);
 
   return (
@@ -367,6 +390,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 selectedId={selected}
                 onSelect={selectFromChart}
                 onScore={(sid, t, v) => sync.set(sKey(sid, t), v)}
+                onRename={(sid, name) => sync.set(sKey(sid, "name"), name)}
               />
             </div>
             <WheelLegend mode={mode} />
