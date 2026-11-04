@@ -158,6 +158,7 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
           size="icon"
           className="h-8 w-8 shrink-0"
           disabled={!canChooseAdditional}
+          aria-pressed={additional}
           aria-label={
             primary
               ? "Основная сфера уже выбрана"
