@@ -94,6 +94,10 @@
   --wheel-grid: oklch(0.86 0.02 75);
   --wheel-grid-strong: oklch(0.75 0.025 70);
   --wheel-label: oklch(0.33 0.025 55);
+  --wheel-sector-base-lightness: 0.985;
+  --wheel-sector-base-chroma: 0.012;
+  --wheel-sector-active-lightness: 0.9;
+  --wheel-sector-active-chroma: 0.06;
   --highlight: oklch(0.93 0.06 85);
   --shadow-soft: 0 1px 2px oklch(0.4 0.03 60 / 6%), 0 8px 24px -12px oklch(0.4 0.03 60 / 18%);
   --app-font-sans: "Golos Text", ui-sans-serif, system-ui, sans-serif;
