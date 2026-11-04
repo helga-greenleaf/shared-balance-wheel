@@ -174,7 +174,8 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
               key={s.id}
               d={sectorPath(i)}
               fill="transparent"
-              style={{ cursor: "pointer" }}
+              // Focus is shown by the sector's own active color, not the default outline.
+              style={{ cursor: "pointer", outline: "none" }}
               tabIndex={0}
               role="slider"
               aria-label={`${s.name}: ${effectiveTarget === "now" ? "Сейчас" : "После продвижения"}`}
