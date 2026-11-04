@@ -43,6 +43,10 @@ export interface WheelView {
   date: string;
   primary: string | null;
   firstSteps: string;
+  /** false only while the explicit initial sphere-list step is unfinished. */
+  setupDone: boolean;
+  /** Draft sphere names from the setup step (synced between participants). */
+  setupList: string[];
   spheres: Sphere[];
 }
 
@@ -94,11 +98,18 @@ export function docToView(doc: Doc): WheelView {
     })
     .sort((a, b) => a.pos - b.pos || a.id.localeCompare(b.id));
   const primary = str(doc["primary"]?.v) || null;
+  const rawList = doc["setupList"]?.v;
+  const setupList = Array.isArray(rawList)
+    ? rawList.filter((x): x is string => typeof x === "string").slice(0, MAX_SPHERES)
+    : [];
   return {
     title: str(doc["title"]?.v, DEFAULT_TITLE),
     date: str(doc["date"]?.v),
     primary: primary && spheres.some((s) => s.id === primary) ? primary : null,
     firstSteps: str(doc["firstSteps"]?.v),
+    // Sessions created before the setup step existed have no "setup" field.
+    setupDone: doc["setup"]?.v !== false,
+    setupList,
     spheres,
   };
 }
@@ -154,7 +165,7 @@ export function fileSlug(title: string): string {
 export function initialFields(
   date: string,
   spheres?: Array<Partial<Sphere> & { id: string }>,
-  extra?: { title?: string; primary?: string | null; firstSteps?: string },
+  extra?: { title?: string; primary?: string | null; firstSteps?: string; setup?: boolean },
 ): Record<string, unknown> {
   const f: Record<string, unknown> = {
     title: extra?.title ?? DEFAULT_TITLE,
@@ -162,6 +173,7 @@ export function initialFields(
   };
   if (extra?.primary) f["primary"] = extra.primary;
   if (extra?.firstSteps) f["firstSteps"] = extra.firstSteps;
+  if (extra?.setup !== undefined) f["setup"] = extra.setup;
   const list: Array<Partial<Sphere> & { id: string }> =
     spheres ?? Array.from({ length: MIN_SPHERES }, () => ({ id: crypto.randomUUID() as string }));
   list.forEach((s, i) => {
