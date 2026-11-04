@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import { applyOps, getSession } from "./session.functions";
+import { applyOps, completeSetup as completeSetupFn, getSession } from "./session.functions";
 import { docToView, isConflictChecked, sKey, type Doc, type WheelView } from "./model";
 
 type PendingOp = { kind: "set" | "add" | "del"; v: unknown; base?: number | undefined };
@@ -288,6 +288,30 @@ export function useWheelSync(id: string, secret: string | null) {
     return n;
   }, []);
 
+  /**
+   * Finish the initial sphere-list step. Server-side idempotent: a second
+   * call (e.g. from another window) just returns the current document.
+   */
+  const completeSetup = useCallback(
+    async (names: string[]) => {
+      if (!secret) return;
+      const s = st.current;
+      const res = JSON.parse((await completeSetupFn({ data: { id, secret, names } })).json) as {
+        rev: number;
+        data: Doc;
+      };
+      s.rev = res.rev;
+      s.doc = res.data;
+      s.online = true;
+      const p = { ...s.pending };
+      delete p["setupList"];
+      delete p["setup"];
+      s.pending = p;
+      update();
+    },
+    [id, secret, update],
+  );
+
   const pendingCount = Object.keys(s.pending).length;
   let status: SyncStatus;
   if (!s.loaded) status = "loading";
@@ -310,6 +334,7 @@ export function useWheelSync(id: string, secret: string | null) {
     deleteSphere,
     resolveConflict,
     takeNotices,
+    completeSetup,
     snapshot,
     flushNow: flush,
     hasPending: pendingCount > 0,

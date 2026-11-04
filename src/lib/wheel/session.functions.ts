@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { initialFields, isValidScore, MAX_SPHERES, MIN_SPHERES, sKey, type Doc, type FieldEntry } from "./model";
+import { initialFields, isValidScore, MAX_SPHERES, MIN_SPHERES, sKey, type Doc } from "./model";
 import { wheelFileSchema } from "./file-schema";
 
 const idSchema = z.string().uuid();
