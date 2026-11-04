@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture
-- Author attribution is a shared presentational footer in setup and workspace, outside session data and browser PDF generation, so links never affect saved work.
+- Author attribution is presentational: shared screen footer and a separate PDF footer with reserved pagination space; the PDF tool link uses only the validated public start-page setting, never session data.
 - Prebundle React runtimes and all used UI/lazy export dependencies in Vite before the first screen; dependency discovery must not replace React chunks beneath a mounted preview renderer.
 - Additional sphere selection uses independent `s:<id>:additional` boolean fields; the locked `wheel_apply_ops` transaction enforces the cap and clears selection on promotion/deletion, preserving concurrent edits and legacy files.
 - Help is an uncontrolled local dialog shared by setup and workspace; its content is separate from session data so it never syncs or enters PDF exports.
