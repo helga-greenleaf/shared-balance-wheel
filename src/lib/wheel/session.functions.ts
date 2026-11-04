@@ -120,6 +120,7 @@ export const importSession = createServerFn({ method: "POST" })
       initialFields(data.date, data.spheres, {
         title: data.title,
         primary: data.primarySphereId,
+        additional: data.additionalSphereIds,
         firstSteps: data.firstSteps,
       }),
     ),
@@ -175,9 +176,11 @@ const opSchema = z
       if (!Array.isArray(v) || v.length > MAX_SPHERES || v.some((x) => typeof x !== "string" || x.length > 200))
         bad(k);
     } else {
-      const m = /^s:([0-9a-f-]{36}):(name|now|after|max|cur|aft)$/.exec(k);
+      const m = /^s:([0-9a-f-]{36}):(name|now|after|max|cur|aft|additional)$/.exec(k);
       if (!m) return bad("key");
-      if (m[2] === "now" || m[2] === "after") {
+      if (m[2] === "additional") {
+        if (typeof v !== "boolean") bad("additional");
+      } else if (m[2] === "now" || m[2] === "after") {
         if (v !== null && !isValidScore(v)) bad("score");
       } else if (typeof v !== "string" || v.length > (m[2] === "name" ? 200 : TEXT_MAX)) bad("text");
     }

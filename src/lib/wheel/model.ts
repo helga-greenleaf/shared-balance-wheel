@@ -6,6 +6,7 @@ export const DEFAULT_TITLE = "Колесо баланса 2027";
 export const UNTITLED = "Без названия";
 export const MIN_SPHERES = 6;
 export const MAX_SPHERES = 15;
+export const MAX_ADDITIONAL = 2;
 
 export type FieldEntry = { v: unknown; r: number };
 export type Doc = Record<string, FieldEntry>;
@@ -17,7 +18,7 @@ export type SphereTextField = (typeof SPHERE_TEXT_FIELDS)[number];
 export const TEXT_LABELS: Record<SphereTextField, string> = {
   max: "Максимальный результат",
   cur: "Где я сейчас",
-  aft: "После продвижения",
+  aft: "Развитие",
 };
 export const TEXT_HINTS: Record<SphereTextField, string> = {
   max: "Что означает 10 именно для вас?",
@@ -42,6 +43,7 @@ export interface WheelView {
   title: string;
   date: string;
   primary: string | null;
+  additional: string[];
   firstSteps: string;
   /** false only while the explicit initial sphere-list step is unfinished. */
   setupDone: boolean;
@@ -57,7 +59,15 @@ export function isConflictChecked(key: string): boolean {
   return f === "name" || f === "max" || f === "cur" || f === "aft";
 }
 
-export const sKey = (id: string, f: SphereField | "pos" | "del") => `s:${id}:${f}`;
+export const sKey = (id: string, f: SphereField | "pos" | "del" | "additional") => `s:${id}:${f}`;
+
+export function canSelectAdditional(view: Pick<WheelView, "primary" | "additional">, id: string): boolean {
+  return id !== view.primary && (view.additional.includes(id) || view.additional.length < MAX_ADDITIONAL);
+}
+
+export function scoreTargetsForMode(mode: "now" | "after" | "both"): Array<"now" | "after"> {
+  return mode === "both" ? ["now", "after"] : [mode];
+}
 
 export function isValidScore(v: unknown): v is number {
   return typeof v === "number" && Number.isInteger(v) && v >= 1 && v <= 10;
@@ -106,6 +116,7 @@ export function docToView(doc: Doc): WheelView {
     title: str(doc["title"]?.v, DEFAULT_TITLE),
     date: str(doc["date"]?.v),
     primary: primary && spheres.some((s) => s.id === primary) ? primary : null,
+    additional: spheres.filter((s) => s.id !== primary && doc[sKey(s.id, "additional")]?.v === true).slice(0, MAX_ADDITIONAL).map((s) => s.id),
     firstSteps: str(doc["firstSteps"]?.v),
     // Sessions created before the setup step existed have no "setup" field.
     setupDone: doc["setup"]?.v !== false,
@@ -165,7 +176,7 @@ export function fileSlug(title: string): string {
 export function initialFields(
   date: string,
   spheres?: Array<Partial<Sphere> & { id: string }>,
-  extra?: { title?: string; primary?: string | null; firstSteps?: string; setup?: boolean },
+  extra?: { title?: string; primary?: string | null; additional?: string[]; firstSteps?: string; setup?: boolean },
 ): Record<string, unknown> {
   const f: Record<string, unknown> = {
     title: extra?.title ?? DEFAULT_TITLE,
@@ -177,6 +188,7 @@ export function initialFields(
   const list: Array<Partial<Sphere> & { id: string }> =
     spheres ?? Array.from({ length: MIN_SPHERES }, () => ({ id: crypto.randomUUID() as string }));
   list.forEach((s, i) => {
+    if (extra?.additional?.includes(s.id) && s.id !== extra.primary) f[sKey(s.id, "additional")] = true;
     f[sKey(s.id, "pos")] = i + 1;
     f[sKey(s.id, "name")] = s.name ?? UNTITLED;
     if (s.now != null) f[sKey(s.id, "now")] = s.now;

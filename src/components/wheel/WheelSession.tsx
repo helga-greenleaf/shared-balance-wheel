@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useWheelSync, rememberSession, type Conflict, type SyncStatus } from "@/lib/wheel/sync";
 import {
   DEFAULT_TITLE,
+  canSelectAdditional,
   MAX_SPHERES,
   MIN_SPHERES,
   sKey,
@@ -211,11 +212,11 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   const copyScores = () => {
     const apply = () => {
       for (const s of view.spheres) sync.set(sKey(s.id, "after"), s.now);
-      toast.success("Текущие оценки скопированы в «После продвижения»");
+      toast.success("Текущие оценки скопированы в «Развитие»");
     };
     if (view.spheres.some((s) => s.after !== null))
       setConfirm({
-        title: "Заменить оценки «После продвижения»?",
+        title: "Заменить оценки «Развитие»?",
         body: "Во втором наборе уже есть оценки. Они будут заменены текущими. Описания не изменятся.",
         action: "Заменить",
         onConfirm: apply,
@@ -402,6 +403,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 mode={mode}
                 target={target}
                 primary={view.primary}
+                additional={view.additional}
                 selectedId={selected}
                 onSelect={selectFromChart}
                 onScore={(sid, t, v) => sync.set(sKey(sid, t), v)}
@@ -458,6 +460,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 index={i}
                 selected={selected === s.id}
                 primary={view.primary === s.id}
+                additional={view.additional.includes(s.id)}
+                canChooseAdditional={canSelectAdditional(view, s.id)}
+                mode={mode}
                 expanded={collapsed[s.id] === undefined ? showAll : !collapsed[s.id]}
                 canDelete={n > MIN_SPHERES}
                 onToggleExpand={() =>
@@ -469,6 +474,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 onSelect={() => setSelected(s.id)}
                 onSet={(f, v) => sync.set(sKey(s.id, f), v)}
                 onTogglePrimary={() => sync.set("primary", view.primary === s.id ? null : s.id)}
+                onToggleAdditional={() => {
+                  if (canSelectAdditional(view, s.id)) sync.set(sKey(s.id, "additional"), !view.additional.includes(s.id));
+                }}
                 onDelete={() => requestDelete(s.id)}
               />
             ))}
