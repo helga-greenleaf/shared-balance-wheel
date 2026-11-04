@@ -341,12 +341,12 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <section className="space-y-3 lg:sticky lg:top-4 lg:self-start">
           <div className="rounded-2xl border bg-card p-3 shadow-soft sm:px-4 sm:py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_1fr]">
               <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Режим просмотра">
                 {(
                   [
                     ["now", "Сейчас"],
-                    ["after", "После продвижения"],
+                    ["after", "Развитие"],
                     ["both", "Оба"],
                   ] as const
                 ).map(([m, label]) => (
@@ -364,19 +364,19 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                   </button>
                 ))}
               </div>
-              {mode === "both" && (
-                <div className="inline-flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">Редактировать:</span>
+                <div className={cn("inline-flex items-center justify-self-end text-sm", mode !== "both" && "invisible")} aria-hidden={mode !== "both"}>
                   <div className="inline-flex rounded-lg border p-0.5">
                     {(
                       [
                         ["now", "Сейчас"],
-                        ["after", "После продвижения"],
+                        ["after", "Развитие"],
                       ] as const
                     ).map(([t, label]) => (
                       <button
                         key={t}
                         aria-pressed={target === t}
+                        aria-label={`Редактировать: ${label}`}
+                        disabled={mode !== "both"}
                         onClick={() => setTarget(t)}
                         className={cn(
                           "rounded-md px-2.5 py-1 transition-colors",
@@ -392,7 +392,6 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                     ))}
                   </div>
                 </div>
-              )}
             </div>
             <div className="mt-2">
               <WheelChart
@@ -418,7 +417,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
               value={view.firstSteps}
               onChange={(e) => sync.set("firstSteps", e.target.value)}
               placeholder="С чего вы начнёте?"
-              className="mt-2 h-[64px] min-h-[64px] max-h-[360px] resize-y bg-card"
+              className="mt-2 min-h-[96px] max-h-[360px] resize-y bg-card"
             />
           </div>
         </section>
