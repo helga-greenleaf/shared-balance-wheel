@@ -20,8 +20,8 @@ interface Props {
 const SIZE = 820;
 const C = SIZE / 2;
 const R = 275;
-const VIEW_TOP = 70;
-const VIEW_HEIGHT = 670;
+const VIEW_TOP = 80;
+const VIEW_HEIGHT = 650;
 
 export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
