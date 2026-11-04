@@ -111,9 +111,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   });
 
   const n = view.spheres.length;
-  const selectFromChart = (sid: string) => {
+  const selectFromChart = (sid: string | null) => {
     setSelected(sid);
-    cardRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (sid) cardRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   const exportJson = () => {
@@ -467,7 +467,6 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 primary={view.primary === s.id}
                 additional={view.additional.includes(s.id)}
                 canChooseAdditional={canSelectAdditional(view, s.id)}
-                mode={mode}
                 expanded={collapsed[s.id] === undefined ? showAll : !collapsed[s.id]}
                 canDelete={n > MIN_SPHERES}
                 onToggleExpand={() =>

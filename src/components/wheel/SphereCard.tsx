@@ -8,7 +8,6 @@ import {
   TEXT_HINTS,
   TEXT_LABELS,
   UNTITLED,
-  scoreTargetsForMode,
   type Score,
   type Sphere,
 } from "@/lib/wheel/model";
@@ -21,7 +20,6 @@ interface Props {
   primary: boolean;
   additional: boolean;
   canChooseAdditional: boolean;
-  mode: "now" | "after" | "both";
   expanded: boolean;
   canDelete: boolean;
   onToggleExpand: () => void;
@@ -117,7 +115,7 @@ function ScoreRow({
 }
 
 export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
-  { sphere, index, selected, primary, additional, canChooseAdditional, mode, expanded, canDelete, onToggleExpand, onSelect, onSet, onTogglePrimary, onToggleAdditional, onDelete },
+  { sphere, index, selected, primary, additional, canChooseAdditional, expanded, canDelete, onToggleExpand, onSelect, onSet, onTogglePrimary, onToggleAdditional, onDelete },
   ref,
 ) {
   const diff = formatDiff(sphere.now, sphere.after);
