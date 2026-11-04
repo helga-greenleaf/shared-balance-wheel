@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
-import { formatDiff, type Score, type Sphere } from "@/lib/wheel/model";
+import { type Score, type Sphere } from "@/lib/wheel/model";
 import { layoutLabels, polar, wheelSegments } from "@/lib/wheel/geometry";
 import { sectorColors } from "@/lib/wheel/colors";
 
@@ -13,7 +13,7 @@ interface Props {
   primary: string | null;
   additional?: string[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   onScore: (id: string, target: ScoreTarget, v: number) => void;
   onRename: (id: string, name: string) => void;
 }
@@ -79,7 +79,6 @@ export function WheelChart({ spheres, mode, target, primary, additional = [], se
   const pt = (i: number, v: number) => polar(C, C, (v / 10) * R, angle(i));
   const showNow = mode !== "after";
   const showAfter = mode !== "now";
-  const info = spheres.find((s) => s.id === (hover ?? selectedId));
 
   const contour = (key: ScoreTarget) => {
     const scores = spheres.map((s) => s[key]);
@@ -130,7 +129,7 @@ export function WheelChart({ spheres, mode, target, primary, additional = [], se
         role="group"
         aria-label="Колесо баланса"
         onPointerUp={() => (drag.current = null)}
-        onPointerLeave={() => { setHover(null); setHoverScore(null); }}
+        onPointerLeave={() => { setHover(null); setHoverScore(null); onSelect(null); }}
       >
         {/* pastel sector backgrounds, under grid and data */}
         {spheres.map((s, i) => {
@@ -355,18 +354,6 @@ export function WheelChart({ spheres, mode, target, primary, additional = [], se
       )}
       </div>
 
-      {info && (
-        <div className="pointer-events-none absolute left-2 top-2 max-w-[220px] rounded-lg border bg-card/95 px-3 py-2 text-sm shadow-soft">
-          <div className="font-medium leading-snug">{info.name}</div>
-          <div className="mt-1 text-muted-foreground">
-            Сейчас: <span className="text-foreground">{info.now ?? "—"}</span> · Развитие:{" "}
-            <span className="text-foreground">{info.after ?? "—"}</span>
-            {formatDiff(info.now, info.after) !== null && (
-              <> · Разница: <span className="text-foreground">{formatDiff(info.now, info.after)}</span></>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

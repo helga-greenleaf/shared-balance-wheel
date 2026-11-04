@@ -194,8 +194,8 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
       {additional && <div className="ml-7 mt-0.5 text-xs font-medium text-primary">⊕ Дополнительная сфера</div>}
 
       <div className="ml-7 mt-3 space-y-2">
-        {scoreTargetsForMode(mode).map((t) => <ScoreRow key={t} label={t === "now" ? "Сейчас" : "Развитие"} variant={t} value={sphere[t]} onChange={(v) => onSet(t, v)} />)}
-        {mode === "both" && diff !== null && <div className="text-xs text-muted-foreground">Разница: {diff}</div>}
+        {(["now", "after"] as const).map((t) => <ScoreRow key={t} label={t === "now" ? "Сейчас" : "Развитие"} variant={t} value={sphere[t]} onChange={(v) => onSet(t, v)} />)}
+        {diff !== null && <div className="text-xs text-muted-foreground">Разница: {diff}</div>}
       </div>
 
       <button
