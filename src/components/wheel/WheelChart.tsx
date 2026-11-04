@@ -20,6 +20,8 @@ interface Props {
 const SIZE = 820;
 const C = SIZE / 2;
 const R = 275;
+const VIEW_TOP = 50;
+const VIEW_HEIGHT = 720;
 
 export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -122,7 +124,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
       <div className="relative mx-auto w-full max-w-[720px]">
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        viewBox={`0 ${VIEW_TOP} ${SIZE} ${VIEW_HEIGHT}`}
         className="block h-auto w-full touch-none select-none"
         role="group"
         aria-label="Колесо баланса"
@@ -244,7 +246,6 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
         {/* Saved values sit beside their markers, with matching contour colors. */}
         <g pointerEvents="none">
           {spheres.map((s, i) => {
-            if (s.id === hover || s.id === selectedId) return null;
             const values: { key: ScoreTarget; value: number; side: number }[] = [];
             if (showNow && s.now !== null) values.push({ key: "now", value: s.now, side: 1 });
             if (showAfter && s.after !== null && !(showNow && s.after === s.now)) {
@@ -336,7 +337,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
           className="absolute z-10 rounded-md border border-input bg-card px-2 py-1 shadow-soft focus:outline-none focus:ring-2 focus:ring-ring"
           style={{
             left: `${(labels[editingIndex]!.x / SIZE) * 100}%`,
-            top: `${(labels[editingIndex]!.y / SIZE) * 100}%`,
+            top: `${((labels[editingIndex]!.y - VIEW_TOP) / VIEW_HEIGHT) * 100}%`,
             transform:
               labels[editingIndex]!.anchor === "start"
                 ? "translate(0,-50%)"
@@ -387,7 +388,6 @@ export function WheelLegend({ mode }: { mode: ViewMode }) {
           После продвижения
         </span>
       )}
-      {mode === "both" && <span className="text-xs">Пустой квадрат — оценки совпадают</span>}
     </div>
   );
 }

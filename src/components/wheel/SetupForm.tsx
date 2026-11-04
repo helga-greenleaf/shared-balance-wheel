@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { FolderOpen, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MAX_SPHERES, MIN_SPHERES } from "@/lib/wheel/model";
 
@@ -7,6 +7,8 @@ interface Props {
   /** Synced draft list from the shared session (may be empty). */
   initialList: string[];
   busy: boolean;
+  importBusy: boolean;
+  onLoadFile: (file: File) => void;
   onListChange: (names: string[]) => void;
   onComplete: (names: string[]) => void;
 }
@@ -22,7 +24,8 @@ const withMinRows = (list: string[]): string[] => {
  * wheel is shown. The draft list syncs between participants and survives
  * page reloads (through the session's local backup).
  */
-export function SetupForm({ initialList, busy, onListChange, onComplete }: Props) {
+export function SetupForm({ initialList, busy, importBusy, onLoadFile, onListChange, onComplete }: Props) {
+  const fileInput = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<string[]>(() => withMinRows(initialList));
   const lastSent = useRef<string[]>(rows);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -69,6 +72,15 @@ export function SetupForm({ initialList, busy, onListChange, onComplete }: Props
         <p className="mt-2 text-sm text-muted-foreground">
           Назовите от {MIN_SPHERES} до {MAX_SPHERES} сфер жизни. Оценки и описания появятся на следующем шаге.
         </p>
+        <Button className="mt-4" variant="outline" onClick={() => fileInput.current?.click()} disabled={busy || importBusy}>
+          {importBusy ? <Loader2 className="animate-spin" /> : <FolderOpen />} Загрузить
+        </Button>
+        <input ref={fileInput} type="file" accept="application/json,.json" className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) onLoadFile(file);
+          }} />
 
         <div className="mt-6 space-y-2">
           {rows.map((r, i) => (
@@ -112,7 +124,7 @@ export function SetupForm({ initialList, busy, onListChange, onComplete }: Props
         </div>
 
         <div className="mt-6">
-          <Button className="w-full" disabled={!ready || busy} onClick={() => onComplete(rows.map((r) => r.trim()))}>
+          <Button className="w-full" disabled={!ready || busy || importBusy} onClick={() => onComplete(rows.map((r) => r.trim()))}>
             {busy && <Loader2 className="animate-spin" />} Заполнить
           </Button>
           {!ready && (

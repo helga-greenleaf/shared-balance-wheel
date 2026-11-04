@@ -151,6 +151,17 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       return;
     }
     const data: WheelFileInput = res.data;
+    if (!view.setupDone) {
+      setBusy("import");
+      try {
+        const r = await importSession({ data });
+        goTo(r.id, r.secret);
+      } catch {
+        toast.error("Не удалось загрузить файл. Список сфер не изменён.");
+        setBusy(null);
+      }
+      return;
+    }
     setConfirm({
       title: "Открыть файл как новую сессию?",
       body: `«${data.title}» откроется как отдельная сессия с новой ссылкой. Текущая сессия не изменится. Перед переходом можно сохранить текущую работу.`,
@@ -254,6 +265,8 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       <SetupForm
         initialList={view.setupList}
         busy={setupBusy}
+        importBusy={busy === "import"}
+        onLoadFile={(file) => { void onFile(file); }}
         onListChange={(names) => sync.set("setupList", names)}
         onComplete={async (names) => {
           setSetupBusy(true);
@@ -325,9 +338,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <section className="space-y-6 lg:sticky lg:top-4 lg:self-start">
-          <div className="rounded-2xl border bg-card p-4 shadow-soft sm:p-6">
+      <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <section className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-2xl border bg-card p-3 shadow-soft sm:p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Режим просмотра">
                 {(
@@ -396,7 +409,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
             <WheelLegend mode={mode} />
           </div>
 
-          <div className="rounded-2xl border bg-card p-4 shadow-soft sm:p-6">
+          <div className="rounded-2xl border bg-card p-3 shadow-soft sm:p-4">
             <label htmlFor="first-steps" className="font-serif text-lg font-medium">
               Первые шаги
             </label>
@@ -405,7 +418,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
               value={view.firstSteps}
               onChange={(e) => sync.set("firstSteps", e.target.value)}
               placeholder="С чего вы начнёте?"
-              className="mt-2 min-h-[96px] max-h-[360px] resize-y bg-card"
+              className="mt-2 h-[72px] min-h-[72px] max-h-[360px] resize-y bg-card"
             />
           </div>
         </section>
@@ -413,7 +426,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium">
-              Сферы <span className="text-sm font-normal text-muted-foreground">({n} из {MIN_SPHERES}–{MAX_SPHERES})</span>
+              Сферы
             </h2>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={copyScores} disabled={!hasAnyAfter} title="Однократно скопировать оценки «Сейчас» во второй набор">
