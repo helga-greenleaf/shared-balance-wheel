@@ -11,6 +11,7 @@ interface Props {
   mode: ViewMode;
   target: ScoreTarget;
   primary: string | null;
+  additional?: string[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onScore: (id: string, target: ScoreTarget, v: number) => void;
@@ -23,7 +24,7 @@ const R = 275;
 const VIEW_TOP = 80;
 const VIEW_HEIGHT = 650;
 
-export function WheelChart({ spheres, mode, target, primary, selectedId, onSelect, onScore, onRename }: Props) {
+export function WheelChart({ spheres, mode, target, primary, additional = [], selectedId, onSelect, onScore, onRename }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [hoverScore, setHoverScore] = useState<number | null>(null);
@@ -185,7 +186,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
               fill="transparent"
               className="cursor-pointer"
               role="img"
-              aria-label={`${s.name}: ${effectiveTarget === "now" ? "Сейчас" : "После продвижения"}`}
+              aria-label={`${s.name}: ${effectiveTarget === "now" ? "Сейчас" : "Развитие"}`}
               data-sector-id={s.id}
               data-score={s[effectiveTarget] ?? undefined}
               onPointerDown={(e) => onDown(e, i)}
@@ -302,6 +303,9 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
                   ★ основная
                 </tspan>
               )}
+              {additional.includes(s.id) && (
+                <tspan x={L.x} dy={fontSize * 1.15} fontSize={11} className="fill-primary">⊕ дополнительная</tspan>
+              )}
             </text>
           );
         })}
@@ -355,7 +359,7 @@ export function WheelChart({ spheres, mode, target, primary, selectedId, onSelec
         <div className="pointer-events-none absolute left-2 top-2 max-w-[220px] rounded-lg border bg-card/95 px-3 py-2 text-sm shadow-soft">
           <div className="font-medium leading-snug">{info.name}</div>
           <div className="mt-1 text-muted-foreground">
-            Сейчас: <span className="text-foreground">{info.now ?? "—"}</span> · После:{" "}
+            Сейчас: <span className="text-foreground">{info.now ?? "—"}</span> · Развитие:{" "}
             <span className="text-foreground">{info.after ?? "—"}</span>
             {formatDiff(info.now, info.after) !== null && (
               <> · Разница: <span className="text-foreground">{formatDiff(info.now, info.after)}</span></>
@@ -385,7 +389,7 @@ export function WheelLegend({ mode }: { mode: ViewMode }) {
             <line x1="2" y1="7" x2="42" y2="7" className="stroke-wheel-after" strokeWidth={2.5} strokeDasharray="7 5" />
             <rect x="17" y="2" width="10" height="10" className="fill-wheel-after stroke-card" strokeWidth={1.5} />
           </svg>
-          После продвижения
+          Развитие
         </span>
       )}
     </div>

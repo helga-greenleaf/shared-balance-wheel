@@ -114,10 +114,12 @@ export function useWheelSync(id: string, secret: string | null) {
         delete s.pending[c.k];
       }
       for (const rj of res.rejected) {
-        const key = rj.kind === "set" ? rj.k! : sKey(rj.sid!, rj.kind === "add" ? "pos" : "del");
+        const key = rj.kind === "set" ? rj.k : rj.sid ? sKey(rj.sid, rj.kind === "add" ? "pos" : "del") : undefined;
+        if (!key) continue;
         delete s.pending[key];
         if (rj.kind === "add") s.notices.push("Сфера не добавлена: достигнут максимум 15 сфер.");
         else if (rj.kind === "del") s.notices.push("Сфера не удалена: должно остаться не меньше 6 сфер.");
+        else if (rj.k?.endsWith(":additional")) s.notices.push("Можно выбрать до двух дополнительных сфер, отличающихся от основной.");
       }
       for (const [k, p] of sent) {
         if (conflictKeys.has(k)) continue;

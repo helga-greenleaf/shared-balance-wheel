@@ -1,5 +1,6 @@
 import { forwardRef, useState } from "react";
-import { ChevronDown, Star, Trash2, X } from "lucide-react";
+import { ChevronDown, CirclePlus, Star, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   formatDiff,
@@ -7,6 +8,7 @@ import {
   TEXT_HINTS,
   TEXT_LABELS,
   UNTITLED,
+  scoreTargetsForMode,
   type Score,
   type Sphere,
 } from "@/lib/wheel/model";
@@ -17,12 +19,16 @@ interface Props {
   index: number;
   selected: boolean;
   primary: boolean;
+  additional: boolean;
+  canChooseAdditional: boolean;
+  mode: "now" | "after" | "both";
   expanded: boolean;
   canDelete: boolean;
   onToggleExpand: () => void;
   onSelect: () => void;
   onSet: (field: "name" | "now" | "after" | "max" | "cur" | "aft", v: unknown) => void;
   onTogglePrimary: () => void;
+  onToggleAdditional: () => void;
   onDelete: () => void;
 }
 
@@ -111,7 +117,7 @@ function ScoreRow({
 }
 
 export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
-  { sphere, index, selected, primary, expanded, canDelete, onToggleExpand, onSelect, onSet, onTogglePrimary, onDelete },
+  { sphere, index, selected, primary, additional, canChooseAdditional, mode, expanded, canDelete, onToggleExpand, onSelect, onSet, onTogglePrimary, onToggleAdditional, onDelete },
   ref,
 ) {
   const diff = formatDiff(sphere.now, sphere.after);
@@ -146,6 +152,16 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
         >
           <Star className={cn("h-4 w-4", primary && "fill-current")} />
         </button>
+        <Button
+          variant={additional ? "secondary" : "ghost"}
+          size="icon"
+          className="h-8 w-8 shrink-0"
+          disabled={!canChooseAdditional}
+          aria-label={additional ? "Снять выбор дополнительной сферы" : "Выбрать дополнительную сферу"}
+          aria-pressed={additional}
+          title={primary ? "Основная сфера уже выбрана" : additional ? "Снять выбор дополнительной сферы" : canChooseAdditional ? "Выбрать дополнительную сферу" : "Можно выбрать до двух дополнительных сфер"}
+          onClick={onToggleAdditional}
+        ><CirclePlus className={cn("h-4 w-4", additional && "text-primary")} /></Button>
         <button
           type="button"
           onClick={onDelete}
@@ -158,11 +174,11 @@ export const SphereCard = forwardRef<HTMLDivElement, Props>(function SphereCard(
         </button>
       </div>
       {primary && <div className="ml-7 mt-0.5 text-xs font-medium text-primary">Основная сфера продвижения</div>}
+      {additional && <div className="ml-7 mt-0.5 text-xs font-medium text-primary">⊕ Дополнительная сфера</div>}
 
       <div className="ml-7 mt-3 space-y-2">
-        <ScoreRow label="Сейчас" variant="now" value={sphere.now} onChange={(v) => onSet("now", v)} />
-        <ScoreRow label="После продвижения" variant="after" value={sphere.after} onChange={(v) => onSet("after", v)} />
-        {diff !== null && <div className="text-xs text-muted-foreground">Разница: {diff}</div>}
+        {scoreTargetsForMode(mode).map((t) => <ScoreRow key={t} label={t === "now" ? "Сейчас" : "Развитие"} variant={t} value={sphere[t]} onChange={(v) => onSet(t, v)} />)}
+        {mode === "both" && diff !== null && <div className="text-xs text-muted-foreground">Разница: {diff}</div>}
       </div>
 
       <button

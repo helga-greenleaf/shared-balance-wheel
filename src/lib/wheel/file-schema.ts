@@ -14,6 +14,7 @@ export const wheelFileSchema = z
     title: z.string().max(200),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     primarySphereId: z.string().uuid().nullable(),
+    additionalSphereIds: z.array(z.string().uuid()).max(2).optional().default([]),
     firstSteps: text,
     spheres: z
       .array(
@@ -37,11 +38,14 @@ export const wheelFileSchema = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Повторяющиеся ID сфер" });
     if (d.primarySphereId && !ids.has(d.primarySphereId))
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Основная сфера не найдена" });
+    if (new Set(d.additionalSphereIds).size !== d.additionalSphereIds.length || d.additionalSphereIds.some((id) => !ids.has(id) || id === d.primarySphereId))
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Дополнительные сферы должны быть различными и отличаться от основной" });
   })
   .transform((d) => ({
     title: d.title,
     date: d.date,
     primarySphereId: d.primarySphereId,
+    additionalSphereIds: d.additionalSphereIds,
     firstSteps: d.firstSteps,
     spheres: [...d.spheres]
       .sort((a, b) => a.order - b.order)
@@ -65,6 +69,7 @@ export function viewToFile(v: WheelView): WheelFileInput {
     title: v.title,
     date: v.date,
     primarySphereId: v.primary,
+    additionalSphereIds: v.additional,
     firstSteps: v.firstSteps,
     spheres: v.spheres.map((s, i) => ({
       id: s.id,
@@ -96,7 +101,8 @@ export function parseWheelFile(text: string):
     return { ok: false, error: `Неподдерживаемая версия формата: ${String(o["version"])}.` };
   const r = wheelFileSchema.safeParse(json);
   if (!r.success) {
-    const issue = r.error.issues[0]!;
+    const issue = r.error.issues[0];
+    if (!issue) return { ok: false, error: "Некорректный файл." };
     const path = issue.path.join(".");
     if (path === "spheres" && (issue.code === "too_small" || issue.code === "too_big"))
       return { ok: false, error: `Число сфер должно быть от ${MIN_SPHERES} до ${MAX_SPHERES}.` };

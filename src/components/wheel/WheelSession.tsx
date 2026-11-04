@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useWheelSync, rememberSession, type Conflict, type SyncStatus } from "@/lib/wheel/sync";
 import {
   DEFAULT_TITLE,
+  canSelectAdditional,
   MAX_SPHERES,
   MIN_SPHERES,
   sKey,
@@ -211,11 +212,11 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   const copyScores = () => {
     const apply = () => {
       for (const s of view.spheres) sync.set(sKey(s.id, "after"), s.now);
-      toast.success("Текущие оценки скопированы в «После продвижения»");
+      toast.success("Текущие оценки скопированы в «Развитие»");
     };
     if (view.spheres.some((s) => s.after !== null))
       setConfirm({
-        title: "Заменить оценки «После продвижения»?",
+        title: "Заменить оценки «Развитие»?",
         body: "Во втором наборе уже есть оценки. Они будут заменены текущими. Описания не изменятся.",
         action: "Заменить",
         onConfirm: apply,
@@ -341,7 +342,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
       </header>
 
       <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <section className="flex min-h-0 flex-col gap-3 lg:self-start">
+        <section className="flex min-h-0 min-w-0 flex-col gap-3 lg:self-start">
           <div className="rounded-2xl border bg-card p-3 shadow-soft sm:px-4 sm:py-3">
             <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_1fr]">
               <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Режим просмотра">
@@ -402,6 +403,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 mode={mode}
                 target={target}
                 primary={view.primary}
+                additional={view.additional}
                 selectedId={selected}
                 onSelect={selectFromChart}
                 onScore={(sid, t, v) => sync.set(sKey(sid, t), v)}
@@ -426,7 +428,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
           </div>
         </section>
 
-        <section className="space-y-3">
+        <section className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium">
               Сферы
@@ -458,6 +460,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 index={i}
                 selected={selected === s.id}
                 primary={view.primary === s.id}
+                additional={view.additional.includes(s.id)}
+                canChooseAdditional={canSelectAdditional(view, s.id)}
+                mode={mode}
                 expanded={collapsed[s.id] === undefined ? showAll : !collapsed[s.id]}
                 canDelete={n > MIN_SPHERES}
                 onToggleExpand={() =>
@@ -469,6 +474,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 onSelect={() => setSelected(s.id)}
                 onSet={(f, v) => sync.set(sKey(s.id, f), v)}
                 onTogglePrimary={() => sync.set("primary", view.primary === s.id ? null : s.id)}
+                onToggleAdditional={() => {
+                  if (canSelectAdditional(view, s.id)) sync.set(sKey(s.id, "additional"), !view.additional.includes(s.id));
+                }}
                 onDelete={() => requestDelete(s.id)}
               />
             ))}

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Колесо баланса" },
       {
         property: "og:description",
-        content: "Совместное колесо баланса для коучинга: «Сейчас» и «После продвижения», PDF А4.",
+        content: "Совместное колесо баланса для коучинга: «Сейчас» и «Развитие», PDF А4.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
