@@ -14,13 +14,40 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      wheel_sessions: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          rev: number
+          secret_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          rev?: number
+          secret_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          rev?: number
+          secret_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      wheel_active_count: { Args: { d: Json }; Returns: number }
+      wheel_apply_ops: { Args: { p_id: string; p_ops: Json }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
