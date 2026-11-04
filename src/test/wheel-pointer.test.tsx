@@ -17,7 +17,12 @@ describe("mouse-only wheel scores", () => {
     for (const key of ["ArrowUp", "ArrowDown", "5", "0", "Enter"]) fireEvent.keyDown(sector, { key });
     expect(onScore).not.toHaveBeenCalled();
     expect(onSelect).not.toHaveBeenCalled();
+    const svg = sector.closest("svg");
+    if (!svg) throw new Error("Wheel SVG missing");
+    Object.defineProperty(svg, "createSVGPoint", { value: () => ({ x: 0, y: 0, matrixTransform: () => ({ x: 410, y: 272.5 }) }) });
+    Object.defineProperty(svg, "getScreenCTM", { value: () => ({ inverse: () => ({}) }) });
     fireEvent.pointerDown(sector, { pointerId: 1 });
     expect(onSelect).toHaveBeenCalledWith("sphere-0");
+    expect(onScore).toHaveBeenCalledWith("sphere-0", "now", 5);
   });
 });
