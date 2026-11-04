@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FolderOpen, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MAX_SPHERES, MIN_SPHERES } from "@/lib/wheel/model";
+import { WheelHelp } from "./WheelHelp";
 
 interface Props {
   /** Synced draft list from the shared session (may be empty). */
@@ -72,9 +73,12 @@ export function SetupForm({ initialList, busy, importBusy, onLoadFile, onListCha
         <p className="mt-2 text-sm text-muted-foreground">
           Назовите от {MIN_SPHERES} до {MAX_SPHERES} сфер жизни. Оценки и описания появятся на следующем шаге.
         </p>
-        <Button className="mt-4" variant="outline" onClick={() => fileInput.current?.click()} disabled={busy || importBusy}>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button variant="outline" onClick={() => fileInput.current?.click()} disabled={busy || importBusy}>
           {importBusy ? <Loader2 className="animate-spin" /> : <FolderOpen />} Загрузить
         </Button>
+        <WheelHelp />
+        </div>
         <input ref={fileInput} type="file" accept="application/json,.json" className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];

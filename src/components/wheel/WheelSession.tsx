@@ -43,6 +43,7 @@ import { downloadBlob } from "@/lib/wheel/download";
 import { WheelChart, WheelLegend, type ScoreTarget, type ViewMode } from "./WheelChart";
 import { NameInput, SphereCard } from "./SphereCard";
 import { SetupForm } from "./SetupForm";
+import { WheelHelp } from "./WheelHelp";
 
 type Confirm = {
   title: string;
@@ -308,6 +309,7 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <WheelHelp />
             <Button variant="default" size="sm" onClick={share}>
               <Share2 /> Поделиться
             </Button>
