@@ -108,7 +108,20 @@ export function parseWheelFile(text: string):
       return { ok: false, error: `Число сфер должно быть от ${MIN_SPHERES} до ${MAX_SPHERES}.` };
     if (/score/.test(path))
       return { ok: false, error: "Оценки должны быть целыми числами от 1 до 10 или пустыми." };
-    return { ok: false, error: `Ошибка в данных файла (${path || "структура"}): ${issue.message}` };
+    const fieldNames: Record<string, string> = {
+      title: "название",
+      date: "дата",
+      firstSteps: "первые шаги",
+      primarySphereId: "основная сфера",
+      additionalSphereIds: "дополнительные сферы",
+      maxResult: "максимальный результат",
+      whereNow: "где я сейчас",
+      afterProgress: "развитие",
+      name: "название сферы",
+    };
+    const last = String(issue.path[issue.path.length - 1] ?? "");
+    const where = fieldNames[last] ?? (path || "структура");
+    return { ok: false, error: `Ошибка в данных файла: некорректное значение в поле «${where}».` };
   }
   return { ok: true, data: json as WheelFileInput };
 }

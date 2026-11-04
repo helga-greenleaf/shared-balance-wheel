@@ -79,6 +79,7 @@ function StatusBadge({ status }: { status: SyncStatus }) {
 function fieldLabel(k: string, view: WheelView) {
   if (k === "title") return "Название колеса";
   if (k === "firstSteps") return "Первые шаги";
+  if (k.startsWith("setupRow:")) return `Список сфер — строка ${Number(k.split(":")[1]) + 1}`;
   const [, sid, f] = k.split(":");
   const s = view.spheres.find((x) => x.id === sid);
   const name = s?.name ?? "сфера";
@@ -110,9 +111,9 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   });
 
   const n = view.spheres.length;
-  const selectFromChart = (sid: string) => {
+  const selectFromChart = (sid: string | null) => {
     setSelected(sid);
-    cardRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (sid) cardRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   const exportJson = () => {
@@ -269,7 +270,11 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
         busy={setupBusy}
         importBusy={busy === "import"}
         onLoadFile={(file) => { void onFile(file); }}
-        onListChange={(names) => sync.set("setupList", names)}
+        onRowChange={(i, v) => sync.set(`setupRow:${i}`, v)}
+        onRowsReplace={(names, prevLength) => {
+          names.forEach((v, j) => sync.set(`setupRow:${j}`, v));
+          for (let j = names.length; j < prevLength; j++) sync.set(`setupRow:${j}`, null);
+        }}
         onComplete={async (names) => {
           setSetupBusy(true);
           try {
@@ -462,7 +467,6 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
                 primary={view.primary === s.id}
                 additional={view.additional.includes(s.id)}
                 canChooseAdditional={canSelectAdditional(view, s.id)}
-                mode={mode}
                 expanded={collapsed[s.id] === undefined ? showAll : !collapsed[s.id]}
                 canDelete={n > MIN_SPHERES}
                 onToggleExpand={() =>

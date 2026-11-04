@@ -10,7 +10,10 @@ interface Props {
   busy: boolean;
   importBusy: boolean;
   onLoadFile: (file: File) => void;
-  onListChange: (names: string[]) => void;
+  /** Typing or adding a row: syncs a single row, never the whole list. */
+  onRowChange: (index: number, value: string) => void;
+  /** Removing a row: sends the shifted list and the previous length. */
+  onRowsReplace: (names: string[], prevLength: number) => void;
   onComplete: (names: string[]) => void;
 }
 
@@ -25,20 +28,31 @@ const withMinRows = (list: string[]): string[] => {
  * wheel is shown. The draft list syncs between participants and survives
  * page reloads (through the session's local backup).
  */
-export function SetupForm({ initialList, busy, importBusy, onLoadFile, onListChange, onComplete }: Props) {
+export function SetupForm({ initialList, busy, importBusy, onLoadFile, onRowChange, onRowsReplace, onComplete }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<string[]>(() => withMinRows(initialList));
   const lastSent = useRef<string[]>(rows);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const focusNext = useRef<number | null>(null);
 
-  // Adopt remote edits from the other participant, but never clobber what
-  // this participant is typing right now.
+  // Adopt remote edits row by row: a row follows the remote value only when
+  // this participant has not changed it since the last sync, so typing is
+  // never clobbered by the other participant's edits to other rows.
   useEffect(() => {
-    if (JSON.stringify(initialList) !== JSON.stringify(lastSent.current)) {
-      lastSent.current = initialList;
-      setRows(withMinRows(initialList));
-    }
+    const remote = withMinRows(initialList);
+    setRows((rows) => {
+      let changed = rows.length !== remote.length;
+      const merged = remote.map((rv, i) => {
+        if (rv !== lastSent.current[i] && (rows[i] ?? "") === (lastSent.current[i] ?? "")) {
+          changed = true;
+          return rv;
+        }
+        return rows[i] ?? rv;
+      });
+      if (!changed) return rows;
+      lastSent.current = merged.map((v, i) => (v === remote[i] ? remote[i]! : (lastSent.current[i] ?? "")));
+      return merged;
+    });
   }, [initialList]);
 
   useEffect(() => {
@@ -48,20 +62,26 @@ export function SetupForm({ initialList, busy, importBusy, onLoadFile, onListCha
     }
   }, [rows]);
 
-  const emit = (next: string[]) => {
+  const setRow = (i: number, v: string) => {
+    const next = rows.map((r, j) => (j === i ? v : r));
     setRows(next);
     lastSent.current = next;
-    onListChange(next);
+    onRowChange(i, v);
   };
-  const setRow = (i: number, v: string) => emit(rows.map((r, j) => (j === i ? v : r)));
   const addRow = () => {
     if (rows.length >= MAX_SPHERES) return;
     focusNext.current = rows.length;
-    emit([...rows, ""]);
+    const next = [...rows, ""];
+    setRows(next);
+    lastSent.current = next;
+    onRowChange(rows.length, "");
   };
   const removeRow = (i: number) => {
     if (rows.length <= MIN_SPHERES) return;
-    emit(rows.filter((_, j) => j !== i));
+    const next = rows.filter((_, j) => j !== i);
+    setRows(next);
+    lastSent.current = next;
+    onRowsReplace(next, rows.length);
   };
 
   const ready = rows.every((r) => r.trim().length > 0);

@@ -55,6 +55,7 @@ export interface WheelView {
 /** Fields where simultaneous edits must be resolved explicitly (texts). */
 export function isConflictChecked(key: string): boolean {
   if (key === "title" || key === "firstSteps") return true;
+  if (key.startsWith("setupRow:")) return true;
   const f = key.split(":")[2];
   return f === "name" || f === "max" || f === "cur" || f === "aft";
 }
@@ -108,10 +109,20 @@ export function docToView(doc: Doc): WheelView {
     })
     .sort((a, b) => a.pos - b.pos || a.id.localeCompare(b.id));
   const primary = str(doc["primary"]?.v) || null;
-  const rawList = doc["setupList"]?.v;
-  const setupList = Array.isArray(rawList)
-    ? rawList.filter((x): x is string => typeof x === "string").slice(0, MAX_SPHERES)
-    : [];
+  // Draft list lives in per-row keys so two participants editing different
+  // rows never overwrite each other. A null/absent key ends the list.
+  const rows: string[] = [];
+  for (let i = 0; i < MAX_SPHERES; i++) {
+    const v = doc[`setupRow:${i}`]?.v;
+    if (typeof v === "string") rows.push(v);
+    else break;
+  }
+  const rawList = doc["setupList"]?.v; // legacy whole-list field
+  const setupList = rows.length
+    ? rows
+    : Array.isArray(rawList)
+      ? rawList.filter((x): x is string => typeof x === "string").slice(0, MAX_SPHERES)
+      : [];
   return {
     title: str(doc["title"]?.v, DEFAULT_TITLE),
     date: str(doc["date"]?.v),
