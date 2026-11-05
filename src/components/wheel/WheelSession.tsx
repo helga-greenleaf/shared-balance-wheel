@@ -114,7 +114,6 @@ export function WheelSession({ id, secret }: { id: string; secret: string }) {
   const n = view.spheres.length;
   const selectFromChart = (sid: string | null) => {
     setSelected(sid);
-    if (sid) cardRefs.current[sid]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   const exportJson = () => {
